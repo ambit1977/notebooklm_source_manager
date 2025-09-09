@@ -1,0 +1,18 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- 大きな半円（下側が少し伸びた形） -->
+    <path d="M20 150 A80 80 0 0 1 180 150" fill="none" stroke="black" stroke-width="10"/>
+    <line x1="20" y1="150" x2="20" y2="180" stroke="black" stroke-width="10"/>
+    <line x1="180" y1="150" x2="180" y2="180" stroke="black" stroke-width="10"/>
+
+    <!-- 中間の半円（サイズを少し大きく調整） -->
+    <path d="M20 155 A60 60 0 0 1 140 155" fill="none" stroke="black" stroke-width="10"/>
+    <line x1="20" y1="155" x2="20" y2="180" stroke="black" stroke-width="10"/>
+    <line x1="140" y1="155" x2="140" y2="180" stroke="black" stroke-width="10"/>
+
+    <!-- 小さな半円（下端を大きな半円と揃える） -->
+    <path d="M20 170 A40 40 0 0 1 100 170" fill="none" stroke="black" stroke-width="10"/>
+    <line x1="20" y1="170" x2="20" y2="180" stroke="black" stroke-width="10"/>
+    <line x1="100" y1="170" x2="100" y2="180" stroke="black" stroke-width="10"/>
+
+    <polygon points="120,20 100,80 130,80 100,160 160,80 130,80 160,20" fill="black" />
+</svg>

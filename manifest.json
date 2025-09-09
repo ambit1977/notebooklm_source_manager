@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extensionName__",
+  "description": "__MSG_extensionDescription__",
+  "version": "1.2.0",
+   "icons": {
+      "128": "icons/128.png",
+      "16": "icons/16.png",
+      "32": "icons/32.png",
+      "38": "icons/38.png",
+      "48": "icons/48.png"
+   },
+  "default_locale": "en",
+  "permissions": ["activeTab", "tabs"],
+  "content_scripts": [{
+    "matches": ["https://notebooklm.google.com/notebook/*"],
+    "js": ["content.js"],
+    "run_at": "document_end"
+  }],
+  "background": { "service_worker": "background.js" },
+  "action": {
+    "default_title": "__MSG_extensionName__",
+    "default_icon": {
+      "16": "icons/16.png",
+      "32": "icons/32.png",
+      "38": "icons/38.png",
+      "48": "icons/48.png",
+      "128": "icons/128.png"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com"
+  },
+  "web_accessible_resources": [{
+    "resources": ["filter.html", "filter.js"],
+    "matches": ["<all_urls>"]
+  }]
+}

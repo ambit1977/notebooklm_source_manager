@@ -1,0 +1,151 @@
+{
+  "extensionName": {
+    "message": "NotebookLM Source Manager",
+    "description": "Name of the extension"
+  },
+  "extensionDescription": {
+    "message": "Easily manage your NotebookLM sources.",
+    "description": "Description of the extension"
+  },
+  "filterTitle": {
+    "message": "Filter Window",
+    "description": "Title of the filter window"
+  },
+  "versionLabel": {
+    "message": "Version",
+    "description": "Label for version"
+  },
+  "deleteModeTab": {
+    "message": "Delete Mode",
+    "description": "Tab label for delete mode"
+  },
+  "batchAddUrlsTab": {
+    "message": "Batch Add URLs",
+    "description": "Tab label for batch URL addition mode"
+  },
+  "renameModeTab": {
+    "message": "Rename Mode",
+    "description": "Tab label for rename mode"
+  },
+  "filterPlaceholder": {
+    "message": "Filter by title",
+    "description": "Placeholder for filter input"
+  },
+  "regexFilterLabel": {
+    "message": "Regex",
+    "description": "Label for regex filter option"
+  },
+  "sortOrderLabel": {
+    "message": "Sort Order",
+    "description": "Label for sort order option"
+  },
+  "sourceTypeLabel": {
+    "message": "Source Type",
+    "description": "Label for source type filter option"
+  },
+  "clearButton": {
+    "message": "Clear",
+    "description": "Text for clear button"
+  },
+  "deleteSelectedButton": {
+    "message": "Delete Selected Sources",
+    "description": "Text for delete selected sources button"
+  },
+  "downloadCsvButton": {
+    "message": "Download CSV",
+    "description": "Text for download CSV button"
+  },
+  "reloadButton": {
+    "message": "Reload",
+    "description": "Text for reload button"
+  },
+  "duplicateCheckButton": {
+    "message": "Duplicate Check",
+    "description": "Text for duplicate check button"
+  },
+  "batchAddUrlsHeading": {
+    "message": "Batch Add URL Mode",
+    "description": "Heading for batch URL addition mode"
+  },
+  "renameModeHeading": {
+    "message": "Rename Mode",
+    "description": "Heading for rename mode"
+  },
+  "deleteConfirmMessage": {
+    "message": "Are you sure you want to delete ",
+    "description": "Confirmation message before deletion, appended with count"
+  },
+  "deletionInProgress": {
+    "message": "Deleting...",
+    "description": "Message displayed during deletion process"
+  },
+  "deleteFinishedMessage": {
+    "message": "Deletion done.",
+    "description": "Message displayed when deletion is finished"
+  },
+  "noDeleteTargetAlert": {
+    "message": "No items selected.",
+    "description": "Alert message when no items are selected for deletion"
+  },
+  "renameEmptyCsv": {
+    "message": "No CSV data provided.",
+    "description": "Error message when rename CSV input is empty"
+  },
+  "renameProgressRunning": {
+    "message": "Renaming in progress",
+    "description": "Message displayed during renaming process"
+  },
+  "renameErrorMessage": {
+    "message": "Error during rename",
+    "description": "Error message when renaming fails"
+  },
+  "renameComplete": {
+    "message": "Rename complete",
+    "description": "Message displayed when renaming is complete"
+  },
+  "errorNoSources": {
+    "message": "No sources found.",
+    "description": "Error message when no sources are available"
+  },
+  "sortDefault": {
+    "message": "Default",
+    "description": "Default sort order"
+  },
+  "sortAsc": {
+    "message": "A→Z",
+    "description": "Ascending sort order"
+  },
+  "sortDesc": {
+    "message": "Z→A",
+    "description": "Descending sort order"
+  },
+  "urlAdditionInstruction": {
+    "message": "Enter multiple URLs line by line. YouTube or Web source is auto-chosen.",
+    "description": "Instruction for batch URL addition"
+  },
+  "urlTextareaPlaceholder": {
+    "message": "Put your URLs here",
+    "description": "Placeholder for URL addition textarea"
+  },
+  "renameInstruction": {
+    "message": "Enter CSV lines: old title,new title. If the title contains commas, wrap in double quotes.",
+    "description": "Instruction for rename mode"
+  },
+  "renameTextareaPlaceholder": {
+    "message": "old title,new title",
+    "description": "Placeholder for rename textarea"
+  },
+  "renameButton": {
+    "message": "Batch Rename",
+    "description": "Text for the rename button"
+  },
+  "addUrlsButton": {
+    "message": "Add URLs",
+    "description": "Text for the add URLs button"
+  },
+  "selectAll": {
+    "message": "Select All / Deselect All",
+    "description": "Label for selecting or deselecting all items"
+  }
+
+}

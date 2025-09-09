@@ -1,0 +1,25 @@
+.DS_Store
+node_modules/
+.vscode/
+.idea/
+*.log
+dist/
+build/
+.env
+*.pem
+*.key
+__MACOSX/
+
+# Mac metadata
+.DS_Store
+
+# Chrome extension build artifacts (if any)
+*.crx
+
+# Local runtime files
+*.local
+
+# Optional: ignore test output
+coverage/
+
+# Keep icons and extension assets tracked intentionally
