@@ -23,9 +23,54 @@
       let titleElement = item.querySelector('.source-title');
       let title = titleElement ? titleElement.innerText.trim() : "No Title";
       let deleteButton = item.querySelector('.source-item-more-button');
-      // ソース種別は「もっと見る」ボタン内の mat-icon のテキストから取得
-      let iconEl = item.querySelector('.source-item-more-button mat-icon');
-      let type = iconEl ? iconEl.innerText.trim() : "Unknown";
+      // ソース種別は複数ヒューリスティックで推定（リンク、テキスト、アイコン属性、クラス名等）
+      function inferSourceType(el) {
+        try {
+          // 1) リンクの href をチェック
+          const links = Array.from(el.querySelectorAll('a')).map(a => (a.href || '').trim()).filter(Boolean);
+          for (const href of links) {
+            const lower = href.toLowerCase();
+            if (lower.includes('youtube.com') || lower.includes('youtu.be')) return 'video_youtube';
+            if (lower.match(/\.pdf(\?|$)/)) return 'drive_pdf';
+            if (lower.includes('drive.google.com')) {
+              // Drive の場合は拡張子や export パラメータからタイプを推定
+              if (lower.match(/export=download|open\?/)) return 'drive_pdf';
+              return 'article';
+            }
+            if (lower.startsWith('http')) return 'web';
+          }
+
+          // 2) 要素テキストから拡張子やキーワードを検出
+          const allText = (el.innerText || '').toLowerCase();
+          if (allText.includes('.pdf')) return 'drive_pdf';
+          if (allText.includes('youtube') || allText.includes('youtu.be')) return 'video_youtube';
+
+          // 3) アイコン要素の aria-title-alt-text を探す
+          const iconEl = el.querySelector('mat-icon, i, img, svg');
+          if (iconEl) {
+            const aria = iconEl.getAttribute && iconEl.getAttribute('aria-label');
+            const title = iconEl.getAttribute && iconEl.getAttribute('title');
+            const alt = iconEl.getAttribute && iconEl.getAttribute('alt');
+            const txt = (iconEl.innerText || iconEl.textContent || '').trim();
+            const candidates = [aria, title, alt, txt].filter(Boolean).join(' ').toLowerCase();
+            if (candidates.includes('youtube') || candidates.includes('video')) return 'video_youtube';
+            if (candidates.includes('pdf')) return 'drive_pdf';
+            if (candidates.includes('doc') || candidates.includes('article')) return 'article';
+            if (candidates.includes('web') || candidates.includes('link')) return 'web';
+          }
+
+          // 4) CSS クラス名から推定
+          const classList = Array.from(el.classList || []).join(' ').toLowerCase();
+          if (classList.includes('video') || classList.includes('youtube')) return 'video_youtube';
+          if (classList.includes('pdf') || classList.includes('document')) return 'drive_pdf';
+
+        } catch (e) {
+          debugLog('inferSourceType error', e);
+        }
+        return 'Unknown';
+      }
+
+      let type = inferSourceType(item);
       sources.push({
         id: item.dataset.sourceId,
         title: title,
@@ -53,11 +98,23 @@
   }
 
   function findChipByIcon(iconText) {
-    let icons = document.querySelectorAll("mat-chip mat-icon");
-    for (const icon of icons) {
-      if (icon.innerText.trim().toLowerCase() === iconText.toLowerCase()) {
-        return icon.closest("mat-chip");
+    // 多様な DOM 構成に対応するため複数の方法で chip を検索
+    const chips = Array.from(document.querySelectorAll('mat-chip, .mat-chip, .chip, button.chip'));
+    const want = (iconText || '').toLowerCase();
+    for (const chip of chips) {
+      const icon = chip.querySelector('mat-icon, i, img, svg');
+      if (icon) {
+        const aria = icon.getAttribute && icon.getAttribute('aria-label');
+        const title = icon.getAttribute && icon.getAttribute('title');
+        const alt = icon.getAttribute && icon.getAttribute('alt');
+        const txt = (icon.innerText || icon.textContent || '').trim();
+        const combined = [aria, title, alt, txt].filter(Boolean).join(' ').toLowerCase();
+        if (combined.includes(want) || combined.includes(want.replace('_', ' '))) return chip;
       }
+      const dataIcon = chip.getAttribute && (chip.getAttribute('data-icon') || chip.getAttribute('data-value'));
+      if (dataIcon && dataIcon.toLowerCase().includes(want)) return chip;
+      const chipText = (chip.innerText || '').toLowerCase();
+      if (chipText.includes(want) || chipText.includes(want.replace('_', ' '))) return chip;
     }
     return null;
   }
