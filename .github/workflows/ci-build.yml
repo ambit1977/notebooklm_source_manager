@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '18'
       - name: Install deps
-        run: npm ci || true
+        run: npm install
       - name: Build
         run: npm run build
       - name: Archive dist
