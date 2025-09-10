@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title data-i18n="filterTitle">Filter Window</title>
+  <!-- Google Fonts の Roboto を読み込む -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
+  <style>
+    /* グローバル設定 */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f7fa;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    /* タブデザイン */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #ddd;
+      margin-bottom: 20px;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      cursor: pointer;
+      border: 1px solid #ddd;
+      border-bottom: none;
+      background: #fafafa;
+      transition: background 0.3s, color 0.3s;
+    }
+    .tab:not(:last-child) {
+      border-right: none;
+    }
+    .tab.active {
+      background: #fff;
+      font-weight: 500;
+      color: #0073e6;
+      border-bottom: 2px solid #fff;
+    }
+    .tab:hover {
+      background: #f0f8ff;
+    }
+    /* タブコンテンツ */
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    /* コントロール部 */
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .controls input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+    .controls button {
+      padding: 10px 16px;
+      border: none;
+      background: #0073e6;
+      color: #fff;
+      font-size: 1em;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .controls button:hover {
+      background: #005bb5;
+    }
+    /* フィルターオプション */
+    .filter-options {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    .filter-options label {
+      font-size: 0.95em;
+      color: #555;
+    }
+    select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+    /* ソースの種類（fieldset） */
+    fieldset.source-type-filters {
+      position: relative;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 20px 10px 10px 10px;
+      margin-bottom: 15px;
+    }
+    fieldset.source-type-filters legend {
+      position: absolute;
+      top: 0;
+      left: 20px;
+      transform: translateY(-50%);
+      background: #fff;
+      padding: 0 10px;
+      font-weight: 600;
+      color: #0073e6;
+    }
+    /* ソースリスト */
+    #sourceList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #sourceList li {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #sourceList li:last-child {
+      border-bottom: none;
+    }
+    /* URL一括追加・リネームモード */
+    textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      resize: vertical;
+      height: 200px;
+    }
+    #urlAdditionMode button,
+    #renameMode button {
+      margin-top: 10px;
+      padding: 10px 16px;
+      border: none;
+      background: #28a745;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #urlAdditionMode button:hover,
+    #renameMode button:hover {
+      background: #1e7e34;
+    }
+    /* 進捗バー */
+    progress {
+      width: 100%;
+      margin-top: 10px;
+      height: 20px;
+      border-radius: 4px;
+    }
+    #progressStatus {
+      margin-top: 5px;
+      font-size: 0.9em;
+      color: #555;
+    }
+    /* エラーメッセージ */
+    #errorMessage,
+    #urlError,
+    #renameError {
+      color: #d9534f;
+      margin-top: 10px;
+      font-size: 0.95em;
+    }
+    /* フッター */
+    footer {
+      margin-top: 20px;
+      font-size: 0.8em;
+      text-align: center;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" data-tab="deleteMode" id="deleteModeTab" data-i18n="deleteModeTab">Delete Mode</div>
+      <div class="tab" data-tab="urlAdditionMode" id="urlAdditionTab" data-i18n="batchAddUrlsTab">Batch Add URLs</div>
+      <div class="tab" data-tab="renameMode" id="renameModeTab" data-i18n="renameModeTab">Rename Mode</div>
+    </div>
+
+    <!-- Delete Mode -->
+    <div id="deleteMode" class="tab-content active">
+      <div class="controls">
+        <input type="text" id="filterInput" placeholder="Filter by title" data-i18n-placeholder="filterPlaceholder">
+        <button id="clearFilter" data-i18n="clearButton">Clear</button>
+      </div>
+      <div id="errorMessage"></div>
+      <div class="filter-options">
+        <label for="regexFilter" id="regexFilterLabel" data-i18n="regexFilterLabel">Regex:</label>
+        <input type="checkbox" id="regexFilter">
+        <label id="sortOrderLabel" for="sortOrder" data-i18n="sortOrderLabel">Sort Order:</label>
+        <select id="sortOrder">
+          <option value="default" data-i18n="sortDefault">Default</option>
+          <option value="asc" data-i18n="sortAsc">A→Z</option>
+          <option value="desc" data-i18n="sortDesc">Z→A</option>
+        </select>
+      </div>
+      <fieldset class="source-type-filters">
+        <legend data-i18n="sourceTypeLabel">Source Type</legend>
+        <div id="sourceTypeFilters"></div>
+      </fieldset>
+      <ul id="sourceList"></ul>
+      <button id="deleteSelected" data-i18n="deleteSelectedButton">Delete Selected Sources</button>
+    </div>
+
+    <!-- URL Batch Add Mode -->
+    <div id="urlAdditionMode" class="tab-content">
+      <h3 id="urlAdditionHeading" data-i18n="batchAddUrlsHeading">Batch Add URL Mode</h3>
+      <p id="urlAdditionInstruction" data-i18n="urlAdditionInstruction">
+        Enter multiple URLs line by line. YouTube or Web source is auto-chosen.
+      </p>
+      <textarea id="urlTextarea" placeholder="Put your URLs here" data-i18n-placeholder="urlTextareaPlaceholder"></textarea>
+      <br>
+      <button id="addUrlsButton" data-i18n="addUrlsButton">Add URLs</button>
+      <div id="urlError"></div>
+      <progress id="urlProgress" max="100" value="0"></progress>
+      <div id="progressStatus"></div>
+    </div>
+
+    <!-- Rename Mode -->
+    <div id="renameMode" class="tab-content">
+      <h3 id="renameHeading" data-i18n="renameModeHeading">Batch Rename Mode</h3>
+      <p id="renameInstruction" data-i18n="renameInstruction">
+        Enter CSV lines: <code>old title,new title</code>.<br>
+        If the title contains commas, wrap in double quotes.
+      </p>
+      <textarea id="renameTextarea" placeholder="old title,new title" data-i18n-placeholder="renameTextareaPlaceholder"></textarea>
+      <br>
+      <button id="renameButton" data-i18n="renameButton">Batch Rename</button>
+      <div id="renameError"></div>
+      <progress id="renameProgress" max="100" value="0"></progress>
+      <div id="renameStatus"></div>
+    </div>
+
+    <footer>
+      <span id="versionLabel" data-i18n="versionLabel">Version</span>: <span id="versionValue">1.0.0</span>
+    </footer>
+  </div>
+
+  <script src="filter.js"></script>
+</body>
+</html>
