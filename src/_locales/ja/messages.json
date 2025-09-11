@@ -1,1 +1,150 @@
-// copied from root
+{
+  "extensionName": {
+    "message": "NotebookLM ソースマネージャー",
+    "description": "拡張機能の名前"
+  },
+  "extensionDescription": {
+    "message": "NotebookLM のソースを簡単に管理できます。",
+    "description": "拡張機能の説明"
+  },
+  "filterTitle": {
+    "message": "フィルターウィンドウ",
+    "description": "フィルターウィンドウのタイトル"
+  },
+  "versionLabel": {
+    "message": "バージョン",
+    "description": "バージョンのラベル"
+  },
+  "deleteModeTab": {
+    "message": "削除モード",
+    "description": "削除モードのタブラベル"
+  },
+  "batchAddUrlsTab": {
+    "message": "URL一括追加モード",
+    "description": "URL一括追加モードのタブラベル"
+  },
+  "renameModeTab": {
+    "message": "リネームモード",
+    "description": "リネームモードのタブラベル"
+  },
+  "filterPlaceholder": {
+    "message": "タイトルでフィルタ",
+    "description": "フィルター入力欄のプレースホルダー"
+  },
+  "regexFilterLabel": {
+    "message": "正規表現",
+    "description": "正規表現フィルタのラベル"
+  },
+  "sortOrderLabel": {
+    "message": "表示順",
+    "description": "ソート順のラベル"
+  },
+  "sourceTypeLabel": {
+    "message": "ソースの種類",
+    "description": "ソース種別フィルタのラベル"
+  },
+  "clearButton": {
+    "message": "クリア",
+    "description": "クリアボタンのテキスト"
+  },
+  "deleteSelectedButton": {
+    "message": "選択したソースを削除",
+    "description": "選択したソースを削除するボタンのテキスト"
+  },
+  "downloadCsvButton": {
+    "message": "CSVダウンロード",
+    "description": "CSVダウンロードボタンのテキスト"
+  },
+  "reloadButton": {
+    "message": "再読み込み",
+    "description": "再読み込みボタンのテキスト"
+  },
+  "duplicateCheckButton": {
+    "message": "重複チェック",
+    "description": "重複チェックボタンのテキスト"
+  },
+  "batchAddUrlsHeading": {
+    "message": "URL一括追加モード",
+    "description": "URL一括追加モードの見出し"
+  },
+  "renameModeHeading": {
+    "message": "リネームモード",
+    "description": "リネームモードの見出し"
+  },
+  "deleteConfirmMessage": {
+    "message": "削除してもよろしいですか？ (件数: ",
+    "description": "削除確認のメッセージ。件数が続く"
+  },
+  "deletionInProgress": {
+    "message": "削除中...",
+    "description": "削除処理中の表示メッセージ"
+  },
+  "deleteFinishedMessage": {
+    "message": "削除完了",
+    "description": "削除完了後の表示メッセージ"
+  },
+  "noDeleteTargetAlert": {
+    "message": "削除対象が選択されていません",
+    "description": "削除対象がない場合のアラートメッセージ"
+  },
+  "renameEmptyCsv": {
+    "message": "CSVデータがありません",
+    "description": "リネーム用CSV入力が空の場合のエラーメッセージ"
+  },
+  "renameProgressRunning": {
+    "message": "リネーム中...",
+    "description": "リネーム処理中の表示メッセージ"
+  },
+  "renameErrorMessage": {
+    "message": "リネームエラー",
+    "description": "リネーム中のエラーメッセージ"
+  },
+  "renameComplete": {
+    "message": "リネーム完了",
+    "description": "リネーム完了後の表示メッセージ"
+  },
+  "errorNoSources": {
+    "message": "ソースが見つかりませんでした",
+    "description": "ソースが存在しない場合のエラーメッセージ"
+  },
+  "sortDefault": {
+    "message": "デフォルト",
+    "description": "デフォルトの並べ替え順"
+  },
+  "sortAsc": {
+    "message": "A→Z",
+    "description": "昇順の並べ替え"
+  },
+  "sortDesc": {
+    "message": "Z→A",
+    "description": "降順の並べ替え"
+  },
+  "urlAdditionInstruction": {
+    "message": "複数のURLを1行ずつ入力してください。YouTube または Web のソースは自動で選択されます。",
+    "description": "URL一括追加モードの説明文"
+  },
+  "urlTextareaPlaceholder": {
+    "message": "ここにURLを入力",
+    "description": "URL追加用テキストエリアのプレースホルダー"
+  },
+  "renameInstruction": {
+    "message": "CSV形式で入力してください： 旧タイトル,新タイトル。タイトルにカンマが含まれる場合は、ダブルクオーテーションで囲んでください。",
+    "description": "リネームモードの説明文"
+  },
+  "renameTextareaPlaceholder": {
+    "message": "旧タイトル,新タイトル",
+    "description": "リネーム用テキストエリアのプレースホルダー"
+  },
+  "renameButton": {
+    "message": "一括リネーム",
+    "description": "リネームボタンのテキスト"
+  },
+  "addUrlsButton": {
+    "message": "URLを追加",
+    "description": "URL追加ボタンのテキスト"
+  },
+  "selectAll": {
+    "message": "全選択／全解除",
+    "description": "全選択または全解除のラベル"
+  }
+}
