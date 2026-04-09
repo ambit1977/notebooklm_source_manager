@@ -24,45 +24,147 @@
       let title = titleElement ? titleElement.innerText.trim() : "No Title";
       let deleteButton = item.querySelector('.source-item-more-button');
       // ソース種別は複数ヒューリスティックで推定（リンク、テキスト、アイコン属性、クラス名等）
-      function inferSourceType(el) {
+      function inferSourceType(el, titleArg) {
         try {
-          // 1) リンクの href をチェック
+          // prepare title/text hints
+          let titleHint = '';
+          if (titleArg) titleHint = ('' + titleArg).toLowerCase();
+          else {
+            const tEl = el.querySelector && el.querySelector('.source-title');
+            titleHint = (tEl && (tEl.innerText || tEl.textContent) || el.getAttribute && (el.getAttribute('title') || '')) .toLowerCase();
+          }
+
+          // 1) リンクの href をチェックして、拡張子やサービス名からタイプ推定
           const links = Array.from(el.querySelectorAll('a')).map(a => (a.href || '').trim()).filter(Boolean);
           for (const href of links) {
             const lower = href.toLowerCase();
+            // YouTube
             if (lower.includes('youtube.com') || lower.includes('youtu.be')) return 'video_youtube';
+            // PDF
             if (lower.match(/\.pdf(\?|$)/)) return 'drive_pdf';
+            // Markdown / raw github pages
+            if (lower.endsWith('.md') || lower.match(/github\.com\/.+\/blob\//) || lower.includes('/raw/')) return 'markdown';
+            // Text files
+            if (lower.endsWith('.txt')) return 'text';
+            // Office / Slides / Docs
+            if (lower.includes('slides.google.com') || lower.includes('/presentation') || lower.match(/\.pptx?($|\?)/) || lower.includes('slideshare')) return 'presentation';
+            if (lower.includes('docs.google.com') || lower.includes('/document') || lower.match(/\.docx?($|\?)/)) return 'document';
+            // Audio files
+            if (lower.match(/\.(mp3|wav|m4a|ogg)(\?|$)/) || lower.includes('audio') || lower.includes('/media/')) return 'audio';
+            // Google Drive generic handling: try to guess by params or path
             if (lower.includes('drive.google.com')) {
-              // Drive の場合は拡張子や export パラメータからタイプを推定
-              if (lower.match(/export=download|open\?/)) return 'drive_pdf';
+              if (lower.match(/export=download/) && lower.match(/format=pdf/)) return 'drive_pdf';
+              if (lower.includes('/presentation') || lower.includes('presentation')) return 'presentation';
+              if (lower.includes('/document') || lower.includes('document')) return 'document';
+              // fallback: drive item -> article-like
               return 'article';
             }
+            // generic http(s) は web
             if (lower.startsWith('http')) return 'web';
           }
 
-          // 2) 要素テキストから拡張子やキーワードを検出
-          const allText = (el.innerText || '').toLowerCase();
-          if (allText.includes('.pdf')) return 'drive_pdf';
-          if (allText.includes('youtube') || allText.includes('youtu.be')) return 'video_youtube';
+          // 2) 要素テキストやメタ情報からキーワードで判定（日本語含む）
+          // include titleHint and scan of common attributes
+          const rawText = (el.textContent || el.innerText || '') + ' ' + titleHint;
+          const allText = (rawText || '').toLowerCase();
 
-          // 3) アイコン要素の aria-title-alt-text を探す
-          const iconEl = el.querySelector('mat-icon, i, img, svg');
-          if (iconEl) {
-            const aria = iconEl.getAttribute && iconEl.getAttribute('aria-label');
-            const title = iconEl.getAttribute && iconEl.getAttribute('title');
-            const alt = iconEl.getAttribute && iconEl.getAttribute('alt');
-            const txt = (iconEl.innerText || iconEl.textContent || '').trim();
-            const candidates = [aria, title, alt, txt].filter(Boolean).join(' ').toLowerCase();
-            if (candidates.includes('youtube') || candidates.includes('video')) return 'video_youtube';
-            if (candidates.includes('pdf')) return 'drive_pdf';
-            if (candidates.includes('doc') || candidates.includes('article')) return 'article';
-            if (candidates.includes('web') || candidates.includes('link')) return 'web';
+          // also scan attributes and child attributes for filenames/urls
+          const attrParts = [];
+          try {
+            const nodes = el.querySelectorAll ? el.querySelectorAll('*') : [];
+            nodes.forEach(n => {
+              ['href','data-url','data-href','data-file','data-src','src','aria-label','title','alt','data-file-type','data-type','data-value','data-mime'].forEach(attr => {
+                try { const v = n.getAttribute && n.getAttribute(attr); if (v) attrParts.push(v); } catch(e) {}
+              });
+            });
+          } catch(e) {}
+          const attrText = attrParts.join(' ').toLowerCase();
+          const combinedText = (allText + ' ' + attrText).toLowerCase();
+          // Loose file-extension checks (allow punctuation after extension)
+          const extAudioRe = /(\b|\.)((mp3|wav|m4a|ogg|flac|aac))(?:[)\]\s,?:;]|$)/i;
+          const extPptRe = /(\b|\.)((pptx?|ppt))(?:[)\]\s,?:;]|$)/i;
+          const extDocRe = /(\b|\.)((docx?|doc))(?:[)\]\s,?:;]|$)/i;
+          const extPdfRe = /(\b|\.)((pdf))(?:[)\]\s,?:;]|$)/i;
+
+          // quick matches from visible text
+          if (allText.match(extPdfRe) || attrText.match(extPdfRe)) return 'drive_pdf';
+          if (allText.includes('youtube') || allText.includes('youtu.be') || attrText.includes('youtube') || attrText.includes('youtu.be')) return 'video_youtube';
+
+          // audio detection: extension or keywords
+          if (attrText.match(extAudioRe) || allText.match(extAudioRe) || combinedText.match(/\b(audio|voice|transcript|podcast)\b/)) return 'audio';
+
+          // presentation detection: google slides/docs presentation paths or extensions or keywords
+          if (attrText.includes('docs.google.com/presentation') || attrText.includes('slides.google.com') || allText.includes('slides.google.com')) return 'presentation';
+          if (attrText.match(extPptRe) || allText.match(extPptRe) || combinedText.match(/\b(slide|slides|presentation|ppt|pptx)\b/)) return 'presentation';
+
+          // document detection
+          if (attrText.match(extDocRe) || allText.match(extDocRe) || combinedText.match(/\b(document|doc|google document)\b/)) return 'document';
+
+          // markdown detection
+          if (combinedText.includes('markdown') || combinedText.includes('\u30de\u30fc\u30af\u30c0\u30f3') || combinedText.includes('.md') || combinedText.match(/\b[\w-]+\.md\b/)) return 'markdown';
+
+          // text detection (txt / plain text)
+          if (combinedText.includes('txt') || combinedText.includes('plain text') || combinedText.includes('\u30c6\u30ad\u30b9\u30c8') || combinedText.match(/\.(txt)(?:[)\]\s,?:;]|$)/)) return 'text';
+
+          // 3) アイコン要素の aria/title/alt/text を探す
+          // scan all possible icon elements (the first mat-icon is often 'more_vert',
+          // so check every icon/img/svg/i and prefer semantic names like drive_presentation or article)
+          const iconEls = Array.from(el.querySelectorAll('mat-icon, i, img, svg'));
+          for (const icon of iconEls) {
+            try {
+              const aria = icon.getAttribute && icon.getAttribute('aria-label');
+              const title = icon.getAttribute && icon.getAttribute('title');
+              const alt = icon.getAttribute && icon.getAttribute('alt');
+              const txt = (icon.innerText || icon.textContent || '').trim();
+              const src = icon.getAttribute && (icon.getAttribute('src') || icon.getAttribute('data-src') || '');
+              const candidates = [aria, title, alt, txt, src].filter(Boolean).join(' ').toLowerCase();
+
+              // explicit google-icon names like 'drive_presentation' or 'article'
+              if (candidates.includes('drive_presentation') || candidates.includes('drive-presentation') || candidates.includes('presentation') || candidates.includes('slides') || candidates.includes('\u30b9\u30e9\u30a4\u30c9')) return 'presentation';
+              if (candidates.includes('article') || candidates.includes('description')) return 'article';
+
+              // website / web icon
+              if (candidates.includes('web') || candidates.includes('website') || candidates.includes('homepage') || candidates.includes('homepage')) return 'web';
+
+              if (candidates.includes('youtube') || candidates.includes('video')) return 'video_youtube';
+              if (candidates.includes('pdf')) return 'drive_pdf';
+              if (candidates.includes('doc') || candidates.includes('document') || candidates.includes('\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8')) return 'document';
+              if (candidates.includes('markdown') || candidates.includes('md')) return 'markdown';
+              if (candidates.includes('audio') || candidates.includes('\u97f3\u58f0') || candidates.includes('transcript') || candidates.includes('voice') || candidates.includes('podcast') ) return 'audio';
+              if (candidates.includes('text') || candidates.includes('txt') || candidates.includes('note')) return 'text';
+
+              // img src heuristics
+              if (src && (src.toLowerCase().includes('presentation') || src.toLowerCase().includes('slides') || src.toLowerCase().includes('ppt'))) return 'presentation';
+              if (src && (src.toLowerCase().includes('audio') || src.toLowerCase().match(/\.(mp3|wav|m4a|ogg|flac|aac)$/i))) return 'audio';
+            } catch (e) {
+              debugLog('icon scan error', e);
+            }
           }
 
-          // 4) CSS クラス名から推定
+          // 4) CSS クラス名や data- 属性から推定
           const classList = Array.from(el.classList || []).join(' ').toLowerCase();
           if (classList.includes('video') || classList.includes('youtube')) return 'video_youtube';
-          if (classList.includes('pdf') || classList.includes('document')) return 'drive_pdf';
+          if (classList.includes('pdf') || classList.includes('document') || classList.includes('doc')) return 'drive_pdf';
+          if (classList.includes('web') || classList.includes('website') || classList.includes('homepage')) return 'web';
+          if (classList.includes('slide') || classList.includes('slides') || classList.includes('presentation')) return 'presentation';
+          if (classList.includes('markdown') || classList.includes('md')) return 'markdown';
+          if (classList.includes('audio') || classList.includes('transcript')) return 'audio';
+          if (classList.includes('text') || classList.includes('plain')) return 'text';
+
+          const dataType = el.getAttribute && (el.getAttribute('data-type') || el.getAttribute('data-file-type') || el.getAttribute('data-icon') || el.getAttribute('data-value'));
+          if (dataType) {
+            const dt = dataType.toLowerCase();
+            if (dt.includes('pdf')) return 'drive_pdf';
+            if (dt.includes('slide') || dt.includes('presentation')) return 'presentation';
+            if (dt.includes('doc') || dt.includes('document')) return 'document';
+            if (dt.includes('audio')) return 'audio';
+            if (dt.includes('web') || dt.includes('site') || dt.includes('homepage')) return 'web';
+            if (dt.includes('md') || dt.includes('markdown')) return 'markdown';
+            if (dt.includes('text') || dt.includes('txt')) return 'text';
+          }
+
+          // fallback: if title or combined text contains obvious URL or domain-like token, treat as web
+          if (titleHint.match(/https?:\/\//) || combinedText.match(/\b([a-z0-9\-]+\.)+[a-z]{2,6}\b/)) return 'web';
 
         } catch (e) {
           debugLog('inferSourceType error', e);
@@ -70,14 +172,49 @@
         return 'Unknown';
       }
 
-      let type = inferSourceType(item);
+      let type = inferSourceType(item, title);
+      // infer origin: file upload/link vs manual input vs unknown
+      function inferSourceOrigin(el) {
+        try {
+          // if there are links that point to files or drive, treat as file
+          const links = Array.from(el.querySelectorAll('a')).map(a => (a.href || '').trim()).filter(Boolean);
+          if (links.length > 0) {
+            for (const href of links) {
+              const lower = href.toLowerCase();
+              if (lower.includes('drive.google.com') || lower.includes('/blob/') || lower.match(/\.(txt|md|pdf|docx?|pptx?|m4a|mp3)($|\?)/)) return 'file';
+            }
+            // generic http link may still be a file
+            return 'file';
+          }
+          // data- attributes or src attributes for attachments
+          const nodes = el.querySelectorAll ? el.querySelectorAll('*') : [];
+          for (const n of nodes) {
+            const attrs = ['data-file','data-src','data-url','src','href','data-file-type'];
+            for (const a of attrs) {
+              try {
+                const v = n.getAttribute && n.getAttribute(a);
+                if (v && v.toString().toLowerCase().match(/\.(txt|md|pdf|docx?|pptx?|m4a|mp3)$/)) return 'file';
+              } catch(e){}
+            }
+          }
+          // if no links/files but there is meaningful text content, consider manual
+          const text = (el.textContent || '').trim();
+          if (text && !text.match(/https?:\/\//)) return 'manual';
+        } catch (e) {
+          debugLog('inferSourceOrigin error', e);
+        }
+        return 'unknown';
+      }
+
+      const origin = inferSourceOrigin(item);
       sources.push({
         id: item.dataset.sourceId,
         title: title,
         deleteButton: deleteButton,
         element: item,
         selected: false,
-        type: type
+        type: type,
+        origin: origin
       });
       debugLog("Source added: ID =", item.dataset.sourceId, "Title =", title, "Type =", type);
     });

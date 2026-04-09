@@ -33,6 +33,20 @@ document.addEventListener("DOMContentLoaded", function() {
     versionLabelEl.innerText = i18nMessage("versionLabel") || "バージョン";
   }
 
+  // フッターのバージョン表示を manifest の version で埋める（ハードコードの 1.0.0 を置換）
+  try {
+    const verEl = document.getElementById('versionValue');
+    if (verEl) {
+      // chrome.runtime.getManifest が利用可能なら manifest.version を使う
+      const manifest = (chrome && chrome.runtime && typeof chrome.runtime.getManifest === 'function') ? chrome.runtime.getManifest() : null;
+      if (manifest && manifest.version) {
+        verEl.innerText = manifest.version;
+      }
+    }
+  } catch (e) {
+    console.warn('could not set version from manifest', e);
+  }
+
   // タブ切替処理
   const tabs = document.querySelectorAll(".tab");
   const tabContents = document.querySelectorAll(".tab-content");
@@ -64,15 +78,22 @@ document.addEventListener("DOMContentLoaded", function() {
   // ソース種別のアイコンおよびツールチップ定義
   function getTypeMapping(type) {
     const typeMap = {
-      "article":            { icon: "📰", tooltip: "Docs" },
-      "description":        { icon: "📃", tooltip: "TXT" },
-      "drive_pdf":          { icon: "📄", tooltip: "PDF" },
-      "drive_presentation": { icon: "📊", tooltip: "PPT" },
-      "markdown":           { icon: "📝", tooltip: "MD" },
-      "video_audio_call":   { icon: "📞", tooltip: "VOICE" },
-      "video_youtube":      { icon: "📺", tooltip: "YouTube" },
-      "web":                { icon: "🌐", tooltip: "WEB" },
-      "Unknown":            { icon: "❓", tooltip: "Unknown" }
+    "article":            { icon: "\ud83d\udcf0", tooltip: "Docs" },
+    "description":        { icon: "\ud83d\udcc3", tooltip: "TXT" },
+    "text":               { icon: "\ud83d\udcc3", tooltip: "TXT" },
+    "drive_pdf":          { icon: "\ud83d\udcc4", tooltip: "PDF" },
+    // some sources use 'presentation' while others use 'drive_presentation'
+    "drive_presentation": { icon: "\ud83d\udcca", tooltip: "PPT" },
+    "presentation":       { icon: "\ud83d\udcca", tooltip: "PPT" },
+    // documents vs generic articles
+    "document":           { icon: "\ud83d\udcc4", tooltip: "DOC" },
+    "markdown":           { icon: "\ud83d\udcdd", tooltip: "MD" },
+    // audio / voice mapping
+    "audio":              { icon: "\ud83c\udfa7", tooltip: "VOICE" },
+    "video_audio_call":   { icon: "\ud83d\udcde", tooltip: "VOICE" },
+    "video_youtube":      { icon: "\ud83d\udcfa", tooltip: "YouTube" },
+    "web":                { icon: "\ud83c\udf10", tooltip: "WEB" },
+    "Unknown":            { icon: "\u2753", tooltip: "Unknown" }
     };
     return typeMap[type] || typeMap["Unknown"];
   }
@@ -86,6 +107,16 @@ document.addEventListener("DOMContentLoaded", function() {
     span.style.marginRight = "5px";
     span.style.fontSize = "1.2em";
     return span;
+  }
+
+  // For text-type, prefer different icons based on origin (file/manual)
+  function getIconForSource(s) {
+    if (s.type === 'text') {
+      if (s.origin === 'file') return { icon: '📄', tooltip: 'TXT (file)' };
+      if (s.origin === 'manual') return { icon: '✏️', tooltip: 'TXT (manual)' };
+      return { icon: '📃', tooltip: 'TXT' };
+    }
+    return getTypeMapping(s.type || 'Unknown');
   }
 
   // ソース一覧の描画
@@ -144,8 +175,13 @@ document.addEventListener("DOMContentLoaded", function() {
       });
       li.appendChild(cbox);
 
-      let iconEl = getTypeIconElement(s.type);
-      li.appendChild(iconEl);
+  let iconInfo = getIconForSource(s);
+  let iconEl = document.createElement('span');
+  iconEl.innerText = iconInfo.icon;
+  iconEl.title = iconInfo.tooltip;
+  iconEl.style.marginRight = '5px';
+  iconEl.style.fontSize = '1.2em';
+  li.appendChild(iconEl);
 
       li.appendChild(document.createTextNode(s.title));
       list.appendChild(li);
@@ -308,68 +344,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   /////////////////////////////////////////////////////////////
-  // 4. URL一括追加モード
-  let progressBar = document.getElementById("urlProgress");
-  if (!progressBar) {
-    progressBar = document.createElement("progress");
-    progressBar.id = "urlProgress";
-    progressBar.max = 100;
-    progressBar.value = 0;
-    (document.getElementById("urlAdditionMode") || document.body).appendChild(progressBar);
-  }
-  let progressStatus = document.getElementById("progressStatus");
-  if (!progressStatus) {
-    progressStatus = document.createElement("div");
-    progressStatus.id = "progressStatus";
-    (document.getElementById("urlAdditionMode") || document.body).appendChild(progressStatus);
-  }
-  let addUrlsButton = document.getElementById("addUrlsButton");
-  if (addUrlsButton) {
-    addUrlsButton.addEventListener("click", async () => {
-      let textarea = document.getElementById("urlTextarea");
-      let errorDiv = document.getElementById("urlError");
-      if (!textarea || !errorDiv) return;
-
-      let lines = textarea.value.split(/\r?\n/).map(x => x.trim()).filter(x => x);
-      if (!lines.length) return;
-
-      progressBar.max = lines.length;
-      progressBar.value = 0;
-      let processed = 0, errorCount = 0;
-      let errorMsgs = [];
-      errorDiv.innerText = "";
-
-      progressStatus.innerText = `Start: ${lines.length}, ERR: ${errorCount}`;
-
-      let remain = [];
-      for (let url of lines) {
-        console.log("Adding URL:", url);
-        try {
-          let resp = await addSourceUrl(url);
-          if (resp.error) throw resp.error;
-        } catch (e) {
-          console.log("URL addition error:", e);
-          errorMsgs.push(`URL add error: ${url} => ${e}`);
-          errorCount++;
-          remain.push(url);
-        }
-        processed++;
-        progressBar.value = processed;
-        progressStatus.innerText = `Progress: ${processed}/${lines.length}, ERR: ${errorCount}`;
-        await new Promise(r => setTimeout(r, 100));
-      }
-
-      if (errorMsgs.length > 0) {
-        errorDiv.innerText = errorMsgs.join("\n");
-        textarea.value = remain.join("\n");
-      } else {
-        errorDiv.innerText = "";
-        textarea.value = "";
-      }
-      progressStatus.innerText += "\nDone.";
-      reloadSources();
-    });
-  }
+  // 4. YouTube 一括追加モードは専用ハンドラが下で定義されています
   function addSourceUrl(url) {
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({ action: "addSource", url }, resp => {
@@ -379,6 +354,116 @@ document.addEventListener("DOMContentLoaded", function() {
           resolve(resp);
         }
       });
+    });
+  }
+
+  // --- YouTube 専用一括追加ハンドラ ---
+  function isYouTubeUrl(u) {
+    try {
+      let url = new URL(u);
+      let host = url.hostname.replace(/^www\./, '');
+      return host === 'youtube.com' || host === 'youtu.be' || host === 'm.youtube.com';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 短縮リンクやパラメータ付き URL を watch?v= フォーマットに正規化
+  function normalizeYouTubeUrl(u) {
+    try {
+      let url = new URL(u);
+      let host = url.hostname.replace(/^www\./, '');
+      if (host === 'youtu.be') {
+        // youtu.be/<id>
+        let id = url.pathname.replace(/^\//, '');
+        if (!id) return null;
+        return `https://www.youtube.com/watch?v=${id}`;
+      }
+      // host is youtube.com or m.youtube.com etc.
+      if (url.pathname === '/watch') {
+        let v = url.searchParams.get('v');
+        return v ? `https://www.youtube.com/watch?v=${v}` : null;
+      }
+      // share/embed paths like /embed/<id>
+      let m = url.pathname.match(/\/embed\/(.+)$/);
+      if (m && m[1]) return `https://www.youtube.com/watch?v=${m[1]}`;
+      // sometimes the id is directly in pathname
+      m = url.pathname.match(/\/v\/(.+)$/);
+      if (m && m[1]) return `https://www.youtube.com/watch?v=${m[1]}`;
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  const addYtBtn = document.getElementById('addYtButton');
+  if (addYtBtn) {
+    addYtBtn.addEventListener('click', async () => {
+      const textarea = document.getElementById('ytTextarea');
+      const errorDiv = document.getElementById('ytError');
+      const prog = document.getElementById('ytProgress');
+      const stat = document.getElementById('ytProgressStatus');
+      if (!textarea || !errorDiv || !prog || !stat) return;
+
+      let lines = textarea.value.split(/\r?\n/).map(x => x.trim()).filter(x => x);
+      if (!lines.length) return;
+
+      // validate/normalize
+      let normalized = [];
+      let bad = [];
+      for (let l of lines) {
+        // try direct URL parse, if missing scheme add https://
+        let candidate = l;
+        if (!/^https?:\/\//i.test(candidate)) candidate = 'https://' + candidate;
+        if (!isYouTubeUrl(candidate)) {
+          bad.push(l);
+          continue;
+        }
+        let n = normalizeYouTubeUrl(candidate);
+        if (!n) {
+          bad.push(l);
+        } else {
+          normalized.push(n);
+        }
+      }
+
+      if (normalized.length === 0) {
+        errorDiv.innerText = 'No valid YouTube URLs found.\n' + (bad.slice(0,5).join('\n') || '');
+        return;
+      }
+
+      prog.max = normalized.length;
+      prog.value = 0;
+      let processed = 0;
+      let errors = [];
+      stat.innerText = `Start: ${normalized.length}`;
+
+      for (let url of normalized) {
+        try {
+          let resp = await addSourceUrl(url);
+          if (resp && resp.error) throw resp.error;
+        } catch (e) {
+          errors.push(`${url} => ${e}`);
+        }
+        processed++;
+        prog.value = processed;
+        stat.innerText = `Progress: ${processed}/${normalized.length}, ERR: ${errors.length}`;
+        // small delay to allow NotebookLM UI to settle
+        await new Promise(r => setTimeout(r, 150));
+      }
+
+      if (errors.length) {
+        errorDiv.innerText = errors.join('\n');
+        // leave the failed ones in textarea for retry
+        let failedUrls = errors.map(e => e.split(' => ')[0]);
+        textarea.value = failedUrls.join('\n');
+      } else {
+        errorDiv.innerText = '';
+        textarea.value = '';
+      }
+      stat.innerText += '\nDone.';
+      // refresh source list
+      reloadSources();
     });
   }
 

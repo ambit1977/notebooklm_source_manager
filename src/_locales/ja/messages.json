@@ -1,10 +1,10 @@
 {
   "extensionName": {
-    "message": "NotebookLM ソースマネージャー",
+    "message": "NotebookLM ソース一括削除・管理ツール",
     "description": "拡張機能の名前"
   },
   "extensionDescription": {
-    "message": "NotebookLM のソースを簡単に管理できます。",
+    "message": "NotebookLM のソースファイルを一括削除・管理します。",
     "description": "拡張機能の説明"
   },
   "filterTitle": {
@@ -20,8 +20,8 @@
     "description": "削除モードのタブラベル"
   },
   "batchAddUrlsTab": {
-    "message": "URL一括追加モード",
-    "description": "URL一括追加モードのタブラベル"
+  "message": "一括追加モード",
+  "description": "URL一括追加モードのタブラベル"
   },
   "renameModeTab": {
     "message": "リネームモード",
@@ -64,8 +64,8 @@
     "description": "重複チェックボタンのテキスト"
   },
   "batchAddUrlsHeading": {
-    "message": "URL一括追加モード",
-    "description": "URL一括追加モードの見出し"
+  "message": "一括追加モード",
+  "description": "URL一括追加モードの見出し"
   },
   "renameModeHeading": {
     "message": "リネームモード",
@@ -120,7 +120,7 @@
     "description": "降順の並べ替え"
   },
   "urlAdditionInstruction": {
-    "message": "複数のURLを1行ずつ入力してください。YouTube または Web のソースは自動で選択されます。",
+    "message": "(ウェブサイトは公式側で一括追加できるようになったので機能削除)",
     "description": "URL一括追加モードの説明文"
   },
   "urlTextareaPlaceholder": {
