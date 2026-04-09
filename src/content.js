@@ -314,6 +314,75 @@
   }
 
 // 個別削除処理（deleteSelectedSources を上書き）
+function isVisibleAndEnabled(el) {
+  if (!el) return false;
+  const style = window.getComputedStyle(el);
+  const rect = el.getBoundingClientRect();
+  return (
+    style.display !== "none" &&
+    style.visibility !== "hidden" &&
+    rect.width > 0 &&
+    rect.height > 0 &&
+    !el.disabled
+  );
+}
+
+function findDeleteConfirmButton() {
+  const selectorCandidates = [
+    "mat-dialog-container button.submit",
+    "mat-dialog-container button.submit-button",
+    "mat-dialog-container button[color='warn']",
+    ".mat-mdc-dialog-container button.submit",
+    ".mat-mdc-dialog-container button.submit-button",
+    ".cdk-overlay-container mat-dialog-container button.submit",
+    ".cdk-overlay-container mat-dialog-container button.submit-button",
+    ".cdk-overlay-container button.submit",
+    ".cdk-overlay-container button.submit-button",
+    "button.submit",
+    "button.submit-button"
+  ];
+
+  for (const sel of selectorCandidates) {
+    const btn = document.querySelector(sel);
+    if (isVisibleAndEnabled(btn)) {
+      return btn;
+    }
+  }
+
+  const dialogRoot =
+    document.querySelector("mat-dialog-container") ||
+    document.querySelector(".mat-mdc-dialog-container") ||
+    document.querySelector(".cdk-overlay-container") ||
+    document;
+
+  const textPositiveHints = ["delete", "confirm", "ok", "削除", "確認"];
+  const textNegativeHints = ["cancel", "close", "戻る", "キャンセル", "閉じる"];
+  const buttons = Array.from(dialogRoot.querySelectorAll("button, [role='button']"));
+
+  return buttons.find((btn) => {
+    if (!isVisibleAndEnabled(btn)) return false;
+    const text = (btn.innerText || btn.textContent || "").trim().toLowerCase();
+    if (!text) return false;
+    const hasPositive = textPositiveHints.some((hint) => text.includes(hint));
+    const hasNegative = textNegativeHints.some((hint) => text.includes(hint));
+    return hasPositive && !hasNegative;
+  }) || null;
+}
+
+async function clickDeleteConfirmButton() {
+  // Wait-and-retry to handle async dialog rendering.
+  const maxRetries = 8;
+  for (let i = 0; i < maxRetries; i++) {
+    const btn = findDeleteConfirmButton();
+    if (btn) {
+      btn.click();
+      return true;
+    }
+    await delay(250);
+  }
+  return false;
+}
+
 async function deleteSelectedSources(selectedIds) {
   let processed = 0;
   for (let i = 0; i < selectedIds.length; i++) {
@@ -345,9 +414,8 @@ async function deleteSelectedSources(selectedIds) {
       if (delBtn) delBtn.click();
       else throw new Error("Delete button not found");
       await delay(500);
-      let confirmBtn = document.querySelector(".submit");
-      if (confirmBtn) confirmBtn.click();
-      else throw new Error("Confirm button not found");
+      const confirmClicked = await clickDeleteConfirmButton();
+      if (!confirmClicked) throw new Error("Confirm button not found");
       await delay(500);
       src.element.dispatchEvent(new Event("mouseleave", { bubbles: true }));
       processed++;
