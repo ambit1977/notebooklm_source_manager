@@ -77,14 +77,43 @@ if (fs.existsSync(rootManifest)) {
   if (!bumpedVersion && rootBumped) bumpedVersion = rootBumped;
 }
 
-// Copy static assets from root except src/dist/node_modules
-const rootFiles = fs.readdirSync(__dirname).filter(f => !['src', 'dist', 'node_modules', '.git', 'package.json', 'package-lock.json', 'build.js'].includes(f));
+// 配布物に含めてはいけない／含める必要のないもの。
+// 特に tmp-profile はスクリーンショット取得用の Chrome プロファイル実体で、
+// Cookie などを含むため絶対に配布パッケージへ入れてはならない。
+const EXCLUDE_FROM_DIST = new Set([
+  'src', 'dist', 'node_modules', '.git', '.github', '.claude',
+  'package.json', 'package-lock.json', 'build.js',
+  'tmp-profile',      // Chrome プロファイル実体（Cookie を含む）
+  'tools',            // 開発用スクリプト
+  'docs',             // GitHub Pages 用ドキュメント
+  'dist.zip',         // 過去のリリース成果物
+  'content.js.bk',    // バックアップ
+  'debug_test.js',    // デバッグ用
+  '.gitignore', '.DS_Store', '__MACOSX'
+]);
+
+// ルート直下の静的アセットをコピー（拡張機能に不要なものは除外）
+const rootFiles = fs.readdirSync(__dirname).filter(f => {
+  if (EXCLUDE_FROM_DIST.has(f)) return false;
+  if (f.endsWith('.md')) return false;   // README / リリースノート等は配布不要
+  return true;
+});
 for (const f of rootFiles) {
   copyRecursive(path.join(__dirname, f), path.join(DIST, f));
 }
 
 // Copy src into dist (overwrites)
 copyRecursive(SRC, DIST);
+
+// src 側にも配布不要なものが混ざっているため、コピー後に取り除く
+// （src/_locales/_locales は過去の取り違えで出来た入れ子ディレクトリ）
+for (const junk of ['debug_test.js', path.join('_locales', '_locales'), '.DS_Store']) {
+  const p = path.join(DIST, junk);
+  if (fs.existsSync(p)) {
+    fs.rmSync(p, { recursive: true, force: true });
+    console.log('Removed from dist:', junk);
+  }
+}
 
 // Inject manifest version into dist/filter.html so footer shows correct version even if JS doesn't run
 try {
