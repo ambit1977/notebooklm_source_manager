@@ -11,6 +11,29 @@
     return chrome.i18n.getMessage(key) || key;
   }
 
+  // ソース名の取得（2026-07 UI 刷新対応）
+  // 新 UI のソース一覧は表示領域外の項目をレンダリングしないため、
+  // .source-title の innerText が空文字を返すことがある（レイアウト依存）。
+  // textContent と aria-label は常に値を持つので、そちらを優先して使う。
+  function extractSourceTitle(item) {
+    const titleElement = item.querySelector('.source-title');
+    if (titleElement) {
+      const candidates = [
+        titleElement.getAttribute('aria-label'),
+        titleElement.textContent,
+        titleElement.innerText
+      ];
+      for (const c of candidates) {
+        const t = (c || '').trim();
+        if (t) return t;
+      }
+    }
+    // .source-title 自体が無い場合はコンテナ側の aria-label を見る
+    const containerAria = (item.getAttribute('aria-label') || '').trim();
+    if (containerAria) return containerAria;
+    return "No Title";
+  }
+
   // 安定版に準じた getSources(): 各ソースのIDは index を使用
   function getSources() {
     let sources = [];
@@ -20,8 +43,7 @@
       if (!item.dataset.sourceId) {
         item.dataset.sourceId = index; // 安定版では index を ID として利用
       }
-      let titleElement = item.querySelector('.source-title');
-      let title = titleElement ? titleElement.innerText.trim() : "No Title";
+      let title = extractSourceTitle(item);
       let deleteButton = item.querySelector('.source-item-more-button');
       // ソース種別は複数ヒューリスティックで推定（リンク、テキスト、アイコン属性、クラス名等）
       function inferSourceType(el, titleArg) {
@@ -447,10 +469,8 @@ async function deleteSelectedSources(selectedIds) {
 
     for (const pair of renamePairs) {
       const { title: oldTitle, newTitle } = pair;
-      let target = Array.from(containers).find(elem => {
-        let tEl = elem.querySelector(".source-title");
-        return tEl && tEl.innerText.trim() === oldTitle;
-      });
+      // 一覧表示と同じ抽出ロジックで突き合わせる（innerText は空を返すことがある）
+      let target = Array.from(containers).find(elem => extractSourceTitle(elem) === oldTitle);
       if (!target) {
         results.push({ oldTitle, newTitle, status: "not found" });
         continue;
