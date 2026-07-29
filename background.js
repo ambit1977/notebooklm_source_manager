@@ -2,14 +2,17 @@ let notebooklmTabId = null;
 let filterWindowId = null;
 const EXTENSION_VERSION = '1.1.0';
 
+// 失敗の種類。filter.js 側でこのコードを見て、文言と復旧手段を出し分ける。
+const ERR = {
+  NO_TAB: 'NO_TAB',                          // 対象タブを見失った
+  NOT_NOTEBOOKLM: 'NOT_NOTEBOOKLM',          // NotebookLM 以外のページ
+  NOT_NOTEBOOK_PAGE: 'NOT_NOTEBOOK_PAGE',    // NotebookLM だがノートブックを開いていない
+  SCRIPT_UNAVAILABLE: 'SCRIPT_UNAVAILABLE'   // content script に届かず、再注入も失敗
+};
+
 // i18n ラッパ関数
 function i18nMessage(key) {
   return chrome.i18n.getMessage(key) || key;
-}
-
-// filterウィンドウへエラーメッセージを送信する関数
-function sendErrorToFilterWindow(errMsg) {
-  chrome.runtime.sendMessage({ action: "displayError", message: errMsg });
 }
 
 // インストール時処理
@@ -17,18 +20,80 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log(`NotebookLM Source Manager installed - Version: ${EXTENSION_VERSION}`);
 });
 
-// 拡張機能アイコンクリック時処理
-chrome.action.onClicked.addListener((tab) => {
-  console.log("Extension icon clicked:", tab);
+const NOTEBOOK_PAGE_RE = /^https:\/\/notebooklm\.google\.com\/notebook\//;
 
-  // NotebookLMタブのURLかどうかを確認
-  if (!tab.url || !tab.url.includes("notebooklm.google.com")) {
-    const msg = i18nMessage("errorActiveTab");
-    sendErrorToFilterWindow(msg);
-    return;
+function isNotebookLmUrl(url) {
+  return !!url && url.startsWith('https://notebooklm.google.com/');
+}
+function isNotebookPageUrl(url) {
+  return NOTEBOOK_PAGE_RE.test(url || '');
+}
+
+// 対象タブの状態を調べる。
+async function resolveNotebookTab() {
+  let tab = null;
+  if (notebooklmTabId !== null) {
+    try {
+      tab = await chrome.tabs.get(notebooklmTabId);
+    } catch (e) {
+      tab = null;  // タブが閉じられている
+    }
   }
 
-  notebooklmTabId = tab.id;
+  // 記録済みのタブがまだ NotebookLM 上にあるなら、それを尊重する。
+  // ここで「他に開いているノートブック」へ勝手に切り替えると、
+  // ユーザーが見ているのとは別のノートブックから削除してしまう危険がある。
+  // ノートブック未表示なら、切り替えずにその旨を返す。
+  if (tab && isNotebookLmUrl(tab.url)) {
+    return isNotebookPageUrl(tab.url) ? { tab } : { error: ERR.NOT_NOTEBOOK_PAGE, tab };
+  }
+
+  // 記録を失っている場合（タブを閉じた／別サイトへ移動した）に限り、
+  // 開いているノートブックを探し直す
+  const found = await chrome.tabs.query({ url: 'https://notebooklm.google.com/notebook/*' });
+  if (found.length) {
+    notebooklmTabId = found[0].id;
+    return { tab: found[0] };
+  }
+  return { error: tab ? ERR.NOT_NOTEBOOKLM : ERR.NO_TAB };
+}
+
+function pingContentScript(tabId) {
+  return new Promise(resolve => {
+    chrome.tabs.sendMessage(tabId, { action: 'ping' }, resp => {
+      if (chrome.runtime.lastError || !resp) resolve(false);
+      else resolve(true);
+    });
+  });
+}
+
+// content script が応答しなければ再注入する（フェイルセーフ）。
+// 拡張機能を後から入れた／更新した直後は、既に開いているタブに
+// content script が入っていないため、この経路で自動復旧する。
+async function ensureContentScript(tabId) {
+  if (await pingContentScript(tabId)) return true;
+  try {
+    await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
+  } catch (e) {
+    console.warn('content script の再注入に失敗:', e && e.message);
+    return false;
+  }
+  // 注入直後はリスナー登録前の可能性があるため、少し待って再確認する
+  for (let i = 0; i < 10; i++) {
+    await new Promise(r => setTimeout(r, 150));
+    if (await pingContentScript(tabId)) return true;
+  }
+  return false;
+}
+
+// 拡張機能アイコンクリック時処理
+chrome.action.onClicked.addListener((tab) => {
+  if (!tab.url || !isNotebookLmUrl(tab.url)) {
+    // NotebookLM 以外のタブで押された場合。ウィンドウは開いて案内を出す。
+    notebooklmTabId = null;
+  } else {
+    notebooklmTabId = tab.id;
+  }
 
   if (filterWindowId !== null) {
     chrome.windows.get(filterWindowId, (win) => {
@@ -54,8 +119,7 @@ function createFilterWindow() {
     if (win) {
       filterWindowId = win.id;
     } else {
-      const msg = i18nMessage("errorCreateFilterWindow");
-      sendErrorToFilterWindow(msg);
+      console.error(i18nMessage("errorCreateFilterWindow"));
     }
   });
 }
@@ -73,35 +137,63 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (tabId === notebooklmTabId && changeInfo.url && !changeInfo.url.includes("notebooklm.google.com")) {
+  if (tabId === notebooklmTabId && changeInfo.url && !isNotebookLmUrl(changeInfo.url)) {
     notebooklmTabId = null;
   }
 });
 
 // メッセージハンドリング処理
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (notebooklmTabId === null) {
-    const errMsg = i18nMessage("errorNoNotebookLMTab");
-    sendErrorToFilterWindow(errMsg);
-    sendResponse({ error: errMsg });
+  // deletionProgress は content script からの進捗通知。フィルターウィンドウへ中継する。
+  if (message.action === "deletionProgress") {
+    chrome.runtime.sendMessage(message).catch(() => {});
     return;
   }
-    
-  // deletionProgress メッセージが来たら、フィルターウィンドウに転送
-  if (message.action === "deletionProgress") {
-    // ここでは単純に全体に再送信する例です。
-    chrome.runtime.sendMessage(message);
+
+  // 対象タブの再読み込み（ユーザーが案内に従って復旧する導線）
+  if (message.action === "reloadNotebookTab") {
+    (async () => {
+      const state = await resolveNotebookTab();
+      if (state.error) {
+        sendResponse({ error: i18nMessage('errorGuide_' + state.error), errorCode: state.error });
+        return;
+      }
+      await chrome.tabs.reload(state.tab.id);
+      // 読み込みと content script の起動を待つ
+      const ok = await ensureContentScript(state.tab.id);
+      sendResponse(ok
+        ? { result: 'reloaded' }
+        : { error: i18nMessage('errorGuide_' + ERR.SCRIPT_UNAVAILABLE), errorCode: ERR.SCRIPT_UNAVAILABLE });
+    })();
+    return true;
   }
-    
-  // NotebookLMタブへメッセージを転送
-  chrome.tabs.sendMessage(notebooklmTabId, message, (response) => {
-    if (chrome.runtime.lastError) {
-      const errMsg = chrome.runtime.lastError.message;
-      sendErrorToFilterWindow(errMsg);
-      sendResponse({ error: errMsg });
-    } else {
-      sendResponse(response);
+
+  // NotebookLM タブへメッセージを転送
+  (async () => {
+    const state = await resolveNotebookTab();
+    if (state.error) {
+      const msg = i18nMessage('errorGuide_' + state.error);
+      sendResponse({ error: msg, errorCode: state.error });
+      return;
     }
-  });
+
+    // 届かなければ再注入を試みる
+    const alive = await ensureContentScript(state.tab.id);
+    if (!alive) {
+      const msg = i18nMessage('errorGuide_' + ERR.SCRIPT_UNAVAILABLE);
+      sendResponse({ error: msg, errorCode: ERR.SCRIPT_UNAVAILABLE });
+      return;
+    }
+
+    chrome.tabs.sendMessage(state.tab.id, message, (response) => {
+      if (chrome.runtime.lastError) {
+        // 再注入後にも失敗した場合は、生のエラーではなく案内文を返す
+        const msg = i18nMessage('errorGuide_' + ERR.SCRIPT_UNAVAILABLE);
+        sendResponse({ error: msg, errorCode: ERR.SCRIPT_UNAVAILABLE });
+      } else {
+        sendResponse(response);
+      }
+    });
+  })();
   return true;
 });

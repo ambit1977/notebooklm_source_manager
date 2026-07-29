@@ -185,6 +185,76 @@
       margin-top: 10px;
       font-size: 0.95em;
     }
+    /* 状態バナー: 読み込み失敗の警告と、その場で試せる復旧手段 */
+    #statusBanner {
+      display: none;
+      margin: 10px 0;
+      padding: 12px 14px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      font-size: 0.95em;
+      line-height: 1.6;
+    }
+    #statusBanner.is-visible { display: block; }
+    #statusBanner.is-warn {
+      background: #fff8e6;
+      border-color: #f0c36d;
+      color: #6b4e00;
+    }
+    #statusBanner.is-info {
+      background: #eef4fd;
+      border-color: #b6cdf3;
+      color: #274b7d;
+    }
+    #statusBannerTitle { font-weight: bold; display: block; margin-bottom: 4px; }
+    #statusBannerActions { margin-top: 10px; }
+    #statusBannerActions button {
+      margin: 0 8px 0 0;
+      padding: 6px 12px;
+      font-size: 0.9em;
+      cursor: pointer;
+    }
+    #statusBannerActions button[disabled] { opacity: .6; cursor: default; }
+    /* 使い方の枠。各モードの先頭に常設し、開閉状態は記憶する */
+    .help-box {
+      border: 1px solid #d9e2ef;
+      background: #f7f9fc;
+      border-radius: 6px;
+      padding: 0 14px;
+      margin: 10px 0 14px;
+      font-size: 0.92em;
+      line-height: 1.7;
+      color: #37475c;
+    }
+    .help-box > summary {
+      cursor: pointer;
+      font-weight: bold;
+      padding: 10px 0;
+      list-style: none;
+      user-select: none;
+      color: #24527a;
+    }
+    .help-box > summary::-webkit-details-marker { display: none; }
+    .help-box > summary::before {
+      content: "▶";
+      display: inline-block;
+      margin-right: 6px;
+      font-size: 0.8em;
+      transition: transform .15s;
+    }
+    .help-box[open] > summary::before { transform: rotate(90deg); }
+    .help-box .help-body { padding: 0 0 12px; }
+    .help-box ol { margin: 6px 0; padding-left: 1.4em; }
+    .help-box li { margin: 3px 0; }
+    .help-box .help-tip,
+    .help-box .help-caution {
+      margin-top: 8px;
+      padding: 7px 10px;
+      border-radius: 4px;
+      font-size: 0.95em;
+    }
+    .help-box .help-tip { background: #eef4fd; }
+    .help-box .help-caution { background: #fff4f4; color: #a3373a; }
     /* フッター */
     footer {
       margin-top: 20px;
@@ -196,6 +266,12 @@
 </head>
 <body>
   <div class="container">
+    <!-- 読み込み失敗時の警告と復旧導線。JS から表示を切り替える -->
+    <div id="statusBanner" role="status" aria-live="polite">
+      <span id="statusBannerTitle"></span>
+      <span id="statusBannerBody"></span>
+      <div id="statusBannerActions"></div>
+    </div>
     <div class="tabs">
   <div class="tab active" data-tab="deleteMode" id="deleteModeTab" data-i18n="deleteModeTab">削除モード</div>
   <div class="tab" data-tab="urlAdditionMode" id="urlAdditionTab" data-i18n="batchAddUrlsTab">一括追加モード</div>
@@ -204,6 +280,18 @@
 
     <!-- Delete Mode -->
     <div id="deleteMode" class="tab-content active">
+      <details class="help-box" id="helpDelete" open>
+        <summary data-i18n="helpTitle">使い方</summary>
+        <div class="help-body">
+          <ol>
+            <li data-i18n="helpDelete1">NotebookLM でノートブックを開いた状態にします</li>
+            <li data-i18n="helpDelete2">消したいソースにチェックを入れます（「全選択／全解除」でまとめて選択できます）</li>
+            <li data-i18n="helpDelete3">「選択したソースを削除」を押します</li>
+          </ol>
+          <div class="help-tip" data-i18n="helpDeleteTip">タイトルや種類で絞り込んでから「全選択」すると、特定のソースだけまとめて消せます。「重複チェック」で同じタイトルのソースを洗い出せます。</div>
+          <div class="help-caution" data-i18n="helpDeleteCaution">削除は取り消せません。実行前に選択内容をご確認ください。</div>
+        </div>
+      </details>
       <div class="controls">
         <input type="text" id="filterInput" placeholder="Filter by title" data-i18n-placeholder="filterPlaceholder">
         <button id="clearFilter" data-i18n="clearButton">Clear</button>
@@ -230,6 +318,16 @@
     <!-- YouTube Batch Add Mode (専用化) -->
     <div id="urlAdditionMode" class="tab-content">
   <h3 id="urlAdditionHeading" data-i18n="batchAddUrlsHeading">一括追加モード</h3>
+      <details class="help-box" id="helpAdd" open>
+        <summary data-i18n="helpTitle">使い方</summary>
+        <div class="help-body">
+          <ol>
+            <li data-i18n="helpAdd1">YouTube の共有リンクを、1行に1つずつ貼り付けます</li>
+            <li data-i18n="helpAdd2">「YouTube URL を追加」を押します</li>
+          </ol>
+          <div class="help-tip" data-i18n="helpAddTip">短縮リンク（youtu.be）や再生リストのパラメータが付いた URL も、自動で正規化してから追加します。取り込みには時間がかかることがあります。</div>
+        </div>
+      </details>
       <p id="urlAdditionInstruction" style="margin:6px 0; color:#555; font-size:0.95em" data-i18n="ytBatchAddInstruction">YouTube の共有リンクを1行ずつ貼り付けてください。短縮リンクや watch?v= を自動で正規化します。</p>
       <p id="urlAdditionNote" style="margin:6px 0; color:#777; font-size:0.9em" data-i18n="ytBatchAddNote">ウェブサイトの一括追加は NotebookLM 本体でできるようになったため、このモードは YouTube 専用です。</p>
       <textarea id="ytTextarea" placeholder="Paste YouTube URLs (one per line)" data-i18n-placeholder="ytTextareaPlaceholder"></textarea>
@@ -243,6 +341,17 @@
     <!-- Rename Mode -->
     <div id="renameMode" class="tab-content">
       <h3 id="renameHeading" data-i18n="renameModeHeading">Batch Rename Mode</h3>
+      <details class="help-box" id="helpRename" open>
+        <summary data-i18n="helpTitle">使い方</summary>
+        <div class="help-body">
+          <ol>
+            <li data-i18n="helpRename1">「変更前のタイトル,変更後のタイトル」を1行に1組ずつ書きます</li>
+            <li data-i18n="helpRename2">タイトルにカンマが含まれる場合は、"..." のように引用符で囲みます</li>
+            <li data-i18n="helpRename3">「一括リネーム」を押します</li>
+          </ol>
+          <div class="help-tip" data-i18n="helpRenameTip">変更前のタイトルは完全一致で照合します。削除モードの「CSVダウンロード」で現在のタイトル一覧を書き出すと、貼り付け元として使えます。</div>
+        </div>
+      </details>
       <p id="renameInstruction" data-i18n="renameInstruction">
         Enter CSV lines: <code>old title,new title</code>.<br>
         If the title contains commas, wrap in double quotes.

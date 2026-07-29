@@ -173,5 +173,95 @@
   },
   "addYtButton": {
     "message": "Add YouTube URLs"
+  },
+  "errorGuide_NO_TAB": {
+    "message": "No NotebookLM tab found. Open a notebook and try again."
+  },
+  "errorGuide_NOT_NOTEBOOKLM": {
+    "message": "The target tab is not NotebookLM. Please open a notebook in NotebookLM."
+  },
+  "errorGuide_NOT_NOTEBOOK_PAGE": {
+    "message": "No notebook is open. Please open a notebook from the list."
+  },
+  "errorGuide_SCRIPT_UNAVAILABLE": {
+    "message": "Could not reach the NotebookLM page. Please reload the page."
+  },
+  "bannerTitle_NO_TAB": {
+    "message": "No NotebookLM tab found"
+  },
+  "bannerBody_NO_TAB": {
+    "message": "Open a notebook, then click the extension icon again."
+  },
+  "bannerTitle_NOT_NOTEBOOKLM": {
+    "message": "Not a NotebookLM page"
+  },
+  "bannerBody_NOT_NOTEBOOKLM": {
+    "message": "This extension only works on a NotebookLM notebook page. Open a notebook and retry."
+  },
+  "bannerTitle_NOT_NOTEBOOK_PAGE": {
+    "message": "No notebook is open"
+  },
+  "bannerBody_NOT_NOTEBOOK_PAGE": {
+    "message": "Sources cannot be read from the NotebookLM home screen. Open a notebook, then retry."
+  },
+  "bannerTitle_SCRIPT_UNAVAILABLE": {
+    "message": "Could not reach the page"
+  },
+  "bannerBody_SCRIPT_UNAVAILABLE": {
+    "message": "Right after the extension is installed or updated, tabs that were already open cannot be reached. Press \"Reload page\" to recover."
+  },
+  "bannerTitle_EMPTY": {
+    "message": "This notebook has no sources"
+  },
+  "bannerBody_EMPTY": {
+    "message": "The open notebook has no sources. If you switched notebooks, press \"Retry\"."
+  },
+  "bannerRetry": {
+    "message": "Retry"
+  },
+  "bannerReloadTab": {
+    "message": "Reload page"
+  },
+  "bannerReloading": {
+    "message": "Reloading..."
+  },
+  "helpTitle": {
+    "message": "How to use"
+  },
+  "helpDelete1": {
+    "message": "Make sure a notebook is open in NotebookLM"
+  },
+  "helpDelete2": {
+    "message": "Tick the sources you want to remove (use Select all / Deselect all for everything)"
+  },
+  "helpDelete3": {
+    "message": "Press \"Delete Selected Sources\""
+  },
+  "helpDeleteTip": {
+    "message": "Filter by title or type first, then Select all, to remove just those sources. \"Check duplicates\" finds sources sharing the same title."
+  },
+  "helpDeleteCaution": {
+    "message": "Deletion cannot be undone. Please review your selection before running it."
+  },
+  "helpAdd1": {
+    "message": "Paste YouTube share links, one per line"
+  },
+  "helpAdd2": {
+    "message": "Press \"Add YouTube URLs\""
+  },
+  "helpAddTip": {
+    "message": "Short links (youtu.be) and URLs carrying extra parameters are normalized automatically. Importing can take a while."
+  },
+  "helpRename1": {
+    "message": "Write \"old title,new title\", one pair per line"
+  },
+  "helpRename2": {
+    "message": "If a title contains a comma, wrap it in double quotes"
+  },
+  "helpRename3": {
+    "message": "Press \"Batch Rename\""
+  },
+  "helpRenameTip": {
+    "message": "Old titles are matched exactly. Use \"Download CSV\" in delete mode to export the current titles as a starting point."
   }
 }

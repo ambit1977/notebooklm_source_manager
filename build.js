@@ -87,7 +87,7 @@ const EXCLUDE_FROM_DIST = new Set([
   'tools',            // 開発用スクリプト
   'docs',             // GitHub Pages 用ドキュメント
   'store-assets',     // ストア掲載用スクリーンショット（1280x800）
-  'store-assets-2x',  // 同・Retina 原寸（2560x1600）
+  'store-assets-raw',  // 説明を焼き込む前の素の画面
   'dist.zip',         // 過去のリリース成果物
   'content.js.bk',    // バックアップ
   'debug_test.js',    // デバッグ用
