@@ -86,6 +86,8 @@ const EXCLUDE_FROM_DIST = new Set([
   'tmp-profile',      // Chrome プロファイル実体（Cookie を含む）
   'tools',            // 開発用スクリプト
   'docs',             // GitHub Pages 用ドキュメント
+  'store-assets',     // ストア掲載用スクリーンショット（1280x800）
+  'store-assets-2x',  // 同・Retina 原寸（2560x1600）
   'dist.zip',         // 過去のリリース成果物
   'content.js.bk',    // バックアップ
   'debug_test.js',    // デバッグ用

@@ -164,5 +164,14 @@
   },
   "errorAddSourceTimeout": {
     "message": "ソースの取り込みが時間内に完了しませんでした。NotebookLM 側の状態を確認してください。"
+  },
+  "ytBatchAddNote": {
+    "message": "ウェブサイトの一括追加は NotebookLM 本体でできるようになったため、このモードは YouTube 専用です。"
+  },
+  "ytBatchAddInstruction": {
+    "message": "YouTube の共有リンクを1行ずつ貼り付けてください。短縮リンクや watch?v= を自動で正規化します。"
+  },
+  "addYtButton": {
+    "message": "YouTube URL を追加"
   }
 }
