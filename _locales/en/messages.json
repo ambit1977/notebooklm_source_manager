@@ -164,5 +164,14 @@
   },
   "errorAddSourceTimeout": {
     "message": "Importing the sources did not finish in time. Please check NotebookLM."
+  },
+  "ytBatchAddNote": {
+    "message": "Websites can now be added in bulk by NotebookLM itself, so this mode is for YouTube only."
+  },
+  "ytBatchAddInstruction": {
+    "message": "Paste YouTube share links, one per line. Short links and watch?v= URLs are normalized automatically."
+  },
+  "addYtButton": {
+    "message": "Add YouTube URLs"
   }
 }
