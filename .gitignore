@@ -19,6 +19,9 @@ __MACOSX/
 # Local runtime files
 *.local
 
+# スクリーンショット取得用の Chrome プロファイル実体（Cookie を含むため追跡しない）
+tmp-profile/
+
 # Optional: ignore test output
 coverage/
 
