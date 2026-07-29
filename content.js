@@ -458,9 +458,12 @@
 
   function findUrlInputField() {
     const scope = overlayScope();
+    // 汎用の textarea にフォールバックしてはいけない。
+    // 追加ダイアログの1画面目（種別選択）には「ウェブで新しいソースを検索」の
+    // textarea が存在するため、URL 入力欄が描画される前にそれを掴んでしまい、
+    // URL が検索欄に入力されて「挿入」ボタンが有効にならない。
     return scope.querySelector('textarea[formcontrolname="urls"]')
-        || scope.querySelector('input[formcontrolname="newUrl"]')  // 旧 UI 互換
-        || scope.querySelector('textarea');
+        || scope.querySelector('input[formcontrolname="newUrl"]');  // 旧 UI 互換
   }
 
   function findInsertButton() {
