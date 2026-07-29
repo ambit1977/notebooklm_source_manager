@@ -1,4 +1,14 @@
 (function() {
+  // 二重注入ガード。
+  // 拡張機能の更新・リロード後は、既に開いているタブの content script が
+  // 切断される（メッセージが届かなくなる）。background 側はそれを検出して
+  // chrome.scripting.executeScript で再注入するが、宣言的注入と重なると
+  // onMessage リスナーが二重登録され、削除が2回走るなどの誤動作につながる。
+  if (window.__nlmSourceManagerLoaded) {
+    return;
+  }
+  window.__nlmSourceManagerLoaded = true;
+
   const debugEnabled = window.location.href.includes("#debug");
 
   function debugLog(...args) {
@@ -729,7 +739,16 @@ async function deleteSelectedSources(selectedIds) {
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     debugLog("Content script received:", message);
-    if (message.action === "getSources") {
+    if (message.action === "ping") {
+      // background からの疎通確認。応答があれば content script は生きている。
+      sendResponse({
+        ok: true,
+        isNotebookPage: /\/notebook\//.test(location.pathname),
+        sourceCount: document.querySelectorAll(SOURCE_ITEM_SELECTOR).length
+      });
+      return;
+    }
+    else if (message.action === "getSources") {
       // パネル／グループの展開を待つため非同期で応答する
       ensureSourcesVisible()
         .catch(e => debugLog('getSources ensure failed', e))

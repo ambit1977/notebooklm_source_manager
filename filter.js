@@ -268,25 +268,104 @@ document.addEventListener("DOMContentLoaded", function() {
     if (err) err.innerText = "";
   }
 
+  // ---- 使い方の枠 -------------------------------------------------------
+  // 初回は開いた状態で表示し、閉じたらその状態を覚えておく。
+  // 毎回同じ説明が場所を取るのは邪魔なので、慣れたユーザーには畳ませる。
+  function setupHelpBoxes() {
+    document.querySelectorAll('details.help-box').forEach(box => {
+      const key = 'helpOpen:' + box.id;
+      let stored = null;
+      try { stored = localStorage.getItem(key); } catch (e) { /* 参照できなければ既定値 */ }
+      if (stored !== null) box.open = (stored === '1');
+      box.addEventListener('toggle', () => {
+        try { localStorage.setItem(key, box.open ? '1' : '0'); } catch (e) {}
+      });
+    });
+  }
+
+  // ---- 状態バナー -------------------------------------------------------
+  // 「一覧が空」には理由が複数ある（タブを見失った／ノートブック未表示／
+  // content script 未注入／本当にソースが0件）。区別せず黙って空表示すると
+  // ユーザーは故障と区別できないため、理由と次の一手を必ず出す。
+  function hideBanner() {
+    const el = document.getElementById("statusBanner");
+    if (el) el.className = "";
+  }
+
+  function showBanner(kind, title, body, actions) {
+    const el = document.getElementById("statusBanner");
+    if (!el) return;
+    el.className = "is-visible " + (kind === "info" ? "is-info" : "is-warn");
+    document.getElementById("statusBannerTitle").innerText = title || "";
+    document.getElementById("statusBannerBody").innerText = body || "";
+    const box = document.getElementById("statusBannerActions");
+    box.innerHTML = "";
+    (actions || []).forEach(a => {
+      const b = document.createElement("button");
+      b.innerText = a.label;
+      b.addEventListener("click", () => a.onClick(b));
+      box.appendChild(b);
+    });
+  }
+
+  // 対象タブを再読み込みして復旧を試みる導線
+  function reloadNotebookTab(btn) {
+    if (btn) { btn.disabled = true; btn.innerText = i18nMessage("bannerReloading"); }
+    chrome.runtime.sendMessage({ action: "reloadNotebookTab" }, (resp) => {
+      if (chrome.runtime.lastError || (resp && resp.error)) {
+        showLoadFailureBanner((resp && resp.errorCode) || "SCRIPT_UNAVAILABLE");
+        return;
+      }
+      reloadSources();
+    });
+  }
+
+  function showLoadFailureBanner(errorCode) {
+    const retry = { label: i18nMessage("bannerRetry"), onClick: () => reloadSources() };
+    const reload = { label: i18nMessage("bannerReloadTab"), onClick: (b) => reloadNotebookTab(b) };
+    const title = i18nMessage("bannerTitle_" + errorCode);
+    const body = i18nMessage("bannerBody_" + errorCode);
+    // 再読み込みで直るのは content script 未注入のときだけ
+    const actions = errorCode === "SCRIPT_UNAVAILABLE" ? [reload, retry] : [retry];
+    showBanner("warn", title, body, actions);
+  }
+
   // ソース再読み込み
-  function reloadSources() {
+  // autoRetried: 自動再試行を既に行ったか（フェイルセーフの二重発火を防ぐ）
+  function reloadSources(autoRetried) {
     chrome.runtime.sendMessage({ action: "getSources" }, (resp) => {
       if (chrome.runtime.lastError) {
-        displayError(chrome.runtime.lastError.message);
+        // background 自体に届かない＝Service Worker 起動待ちの可能性がある。
+        // 一度だけ間を置いて自動で仕切り直す。
+        if (!autoRetried) {
+          setTimeout(() => reloadSources(true), 600);
+          return;
+        }
+        showLoadFailureBanner("SCRIPT_UNAVAILABLE");
         return;
       }
       if (resp && resp.error) {
-        displayError(resp.error);
+        showLoadFailureBanner(resp.errorCode || "SCRIPT_UNAVAILABLE");
+        displayError("");
         return;
       }
-      if (resp && resp.sources) {
+      if (resp && Array.isArray(resp.sources)) {
         clearError();
         sources = initSourceSelection(resp.sources);
         filteredSources = [...sources];
         updateFilteredSources();
         renderSourceTypeFilters();
+        if (sources.length === 0) {
+          // 0件が正常なケース（空のノートブック）と、失敗を取り違えないよう明示する
+          showBanner("info",
+            i18nMessage("bannerTitle_EMPTY"),
+            i18nMessage("bannerBody_EMPTY"),
+            [{ label: i18nMessage("bannerRetry"), onClick: () => reloadSources() }]);
+        } else {
+          hideBanner();
+        }
       } else {
-        displayError(i18nMessage("errorNoSources"));
+        showLoadFailureBanner("SCRIPT_UNAVAILABLE");
       }
     });
   }
@@ -689,6 +768,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     reloadBtn.addEventListener("click", reloadSources);
     document.getElementById("deleteSelected").insertAdjacentElement("afterend", reloadBtn);
   }
+
+  // 使い方の枠の開閉状態を復元
+  setupHelpBoxes();
 
   // 初期ソース取得
   reloadSources();

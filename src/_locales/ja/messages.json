@@ -173,5 +173,95 @@
   },
   "addYtButton": {
     "message": "YouTube URL を追加"
+  },
+  "errorGuide_NO_TAB": {
+    "message": "NotebookLM のタブが見つかりません。ノートブックを開いてから、もう一度お試しください。"
+  },
+  "errorGuide_NOT_NOTEBOOKLM": {
+    "message": "NotebookLM 以外のページが対象になっています。NotebookLM のノートブックを開いてください。"
+  },
+  "errorGuide_NOT_NOTEBOOK_PAGE": {
+    "message": "ノートブックが開かれていません。一覧からノートブックを開いてください。"
+  },
+  "errorGuide_SCRIPT_UNAVAILABLE": {
+    "message": "NotebookLM のページと通信できませんでした。ページを再読み込みしてください。"
+  },
+  "bannerTitle_NO_TAB": {
+    "message": "NotebookLM のタブが見つかりません"
+  },
+  "bannerBody_NO_TAB": {
+    "message": "ノートブックを開いた状態で、もう一度拡張機能のアイコンをクリックしてください。"
+  },
+  "bannerTitle_NOT_NOTEBOOKLM": {
+    "message": "NotebookLM のページではありません"
+  },
+  "bannerBody_NOT_NOTEBOOKLM": {
+    "message": "この拡張機能は NotebookLM のノートブック画面でのみ動作します。ノートブックを開いてから再試行してください。"
+  },
+  "bannerTitle_NOT_NOTEBOOK_PAGE": {
+    "message": "ノートブックが開かれていません"
+  },
+  "bannerBody_NOT_NOTEBOOK_PAGE": {
+    "message": "NotebookLM のトップ画面ではソースを取得できません。ノートブックを1つ開いてから再試行してください。"
+  },
+  "bannerTitle_SCRIPT_UNAVAILABLE": {
+    "message": "ページと通信できませんでした"
+  },
+  "bannerBody_SCRIPT_UNAVAILABLE": {
+    "message": "拡張機能をインストール／更新した直後は、その前から開いていたタブと通信できないことがあります。「ページを再読み込み」を押すと復旧します。"
+  },
+  "bannerTitle_EMPTY": {
+    "message": "ソースが1件もありません"
+  },
+  "bannerBody_EMPTY": {
+    "message": "開いているノートブックにソースが登録されていません。別のノートブックを開いている場合は「再試行」を押してください。"
+  },
+  "bannerRetry": {
+    "message": "再試行"
+  },
+  "bannerReloadTab": {
+    "message": "ページを再読み込み"
+  },
+  "bannerReloading": {
+    "message": "再読み込み中..."
+  },
+  "helpTitle": {
+    "message": "使い方"
+  },
+  "helpDelete1": {
+    "message": "NotebookLM でノートブックを開いた状態にします"
+  },
+  "helpDelete2": {
+    "message": "消したいソースにチェックを入れます（「全選択／全解除」でまとめて選択できます）"
+  },
+  "helpDelete3": {
+    "message": "「選択したソースを削除」を押します"
+  },
+  "helpDeleteTip": {
+    "message": "タイトルや種類で絞り込んでから「全選択」すると、特定のソースだけまとめて消せます。「重複チェック」で同じタイトルのソースを洗い出せます。"
+  },
+  "helpDeleteCaution": {
+    "message": "削除は取り消せません。実行前に選択内容をご確認ください。"
+  },
+  "helpAdd1": {
+    "message": "YouTube の共有リンクを、1行に1つずつ貼り付けます"
+  },
+  "helpAdd2": {
+    "message": "「YouTube URL を追加」を押します"
+  },
+  "helpAddTip": {
+    "message": "短縮リンク（youtu.be）や再生リストのパラメータが付いた URL も、自動で正規化してから追加します。取り込みには時間がかかることがあります。"
+  },
+  "helpRename1": {
+    "message": "「変更前のタイトル,変更後のタイトル」を1行に1組ずつ書きます"
+  },
+  "helpRename2": {
+    "message": "タイトルにカンマが含まれる場合は、\"...\" のように引用符で囲みます"
+  },
+  "helpRename3": {
+    "message": "「一括リネーム」を押します"
+  },
+  "helpRenameTip": {
+    "message": "変更前のタイトルは完全一致で照合します。削除モードの「CSVダウンロード」で現在のタイトル一覧を書き出すと、貼り付け元として使えます。"
   }
 }

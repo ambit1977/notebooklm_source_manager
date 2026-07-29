@@ -1,4 +1,4 @@
-# Chrome Web Store 掲載内容（v1.2.33）
+# Chrome Web Store 掲載内容（v1.2.38）
 
 そのままコピー＆ペーストできる形式でまとめています。
 文字数は Chrome Web Store の上限（概要 132 文字／詳細説明 16,000 文字）に収めています。
@@ -88,7 +88,7 @@ https://github.com/ambit1977/notebooklm_source_manager
 ・本拡張機能は Google LLC の提供物ではなく、公式のものでもありません。
 
 
-■ 更新履歴（v1.2.33）
+■ 更新履歴（v1.2.38）
 
 2026年7月の NotebookLM（Gemini Notebook）の UI 刷新に対応しました。
 
@@ -98,6 +98,13 @@ https://github.com/ambit1977/notebooklm_source_manager
 ・ソース名が空欄になる問題を修正
 ・ソースの種類判定を修正
 ・削除確認ダイアログへの対応を改善
+
+使い勝手も改善しました。
+
+・各モードに「使い方」の説明を常設（不要になったら畳めます）
+・ソースを読み込めないとき、原因と対処法を画面上に表示するようにしました
+・拡張機能をインストール／更新した直後でも、開いていたタブを
+  自動で再接続して読み込めるようにしました
 ```
 
 ---
@@ -185,7 +192,7 @@ https://github.com/ambit1977/notebooklm_source_manager
 ・This extension is not provided by, or affiliated with, Google LLC.
 
 
-■ What's new in v1.2.33
+■ What's new in v1.2.38
 
 Updated for the July 2026 NotebookLM (Gemini Notebook) interface redesign.
 
@@ -195,6 +202,13 @@ Updated for the July 2026 NotebookLM (Gemini Notebook) interface redesign.
 ・Fixed source names appearing blank
 ・Fixed source type detection
 ・Improved handling of the delete confirmation dialog
+
+Usability improvements:
+
+・Every mode now includes a built-in "How to use" panel (collapsible)
+・When sources cannot be loaded, the reason and what to do are shown on screen
+・Tabs that were already open are reconnected automatically right after the
+  extension is installed or updated
 ```
 
 ---
@@ -202,29 +216,49 @@ Updated for the July 2026 NotebookLM (Gemini Notebook) interface redesign.
 ## スクリーンショット（1280×800）
 
 Chrome Web Store は 1280×800 または 640×400 のみ受け付けます。
-`store-assets/` の5枚はすべて 1280×800 です。Retina 原寸は `store-assets-2x/` にあります。
+`store-assets/` の5枚はすべて 1280×800 で、**画像内に見出しと説明を焼き込んであります**
+（ストアのキャプション欄は表示が小さく読み飛ばされやすいため）。
+説明を焼き込む前の素の画面は `store-assets-raw/` にあります。
 
-| # | ファイル | 掲載順の推奨 | JA キャプション | EN キャプション |
-|---|---|---|---|---|
-| 1 | `01b-delete-button.png` | **1枚目** | 選んで1回押すだけ。まとめて削除できます | Tick the boxes, press once — sources deleted together |
-| 2 | `01-delete-mode.png` | 2枚目 | ソースが一覧表示され、全選択にも対応 | All sources listed, with select-all support |
-| 3 | `02-filter.png` | 3枚目 | キーワードや種類で絞り込んでから整理 | Narrow down by keyword or source type first |
-| 4 | `03-batch-add.png` | 4枚目 | YouTube のリンクを貼るだけで一括追加 | Paste YouTube links to add them all at once |
-| 5 | `04-rename.png` | 5枚目 | CSV 形式でまとめて名前を変更 | Rename many sources at once, CSV style |
+掲載はファイル名の順（01〜05）でそのまま並べてください。
 
-1枚目に `01b` を推す理由は、**選択状態と「選択したソースを削除」ボタンが1画面に収まっており、
-この拡張機能の価値が1枚で伝わる**ためです。`01-delete-mode.png` はリストの長さは伝わりますが、
-削除ボタンが画面外になります。
+| # | ファイル | 画像内の見出し | 補足文（画像内） |
+|---|---|---|---|
+| 1 | `01-bulk-delete.png` | チェックを入れて、1回押すだけ | NotebookLM は1件ずつしか削除できません。この拡張機能なら、まとめて選んで一度に消せます。 |
+| 2 | `02-select-all.png` | ノートブックを空にするのも一瞬 | ソースが一覧表示され、「全選択／全解除」でまとめて選べます。削除の進捗もその場で確認できます。 |
+| 3 | `03-filter.png` | 必要なものだけ残して整理 | キーワード（正規表現も可）や、PDF・ウェブ・YouTube などの種類で絞り込んでから操作できます。 |
+| 4 | `04-batch-add.png` | リンクを貼り付けるだけ | 複数の YouTube URL をまとめて追加します。短縮リンクや余分なパラメータは自動で正規化されます。 |
+| 5 | `05-rename.png` | CSV 形式でまとめて名前を変更 | 「変更前のタイトル,変更後のタイトル」を並べて書くだけ。長いファイル名の整理に便利です。 |
 
----
+1枚目に一括削除を置いているのは、**選択状態と「選択したソースを削除」ボタンが1画面に収まり、
+この拡張機能の価値が1枚で伝わる**ためです。既存レビューの動機もここにありました。
+
+なお各画像には拡張機能内の「使い方」枠も写り込んでいるため、
+インストール前に操作手順まで把握できます。
+
+### 画像の作り直し方
+
+素の画面を撮り直したうえで、見出しを焼き込む合成まで自動化してあります。
+
+```bash
+cd ~/Documents/個人開発/Chrome拡張/_screenshot-env
+node capture2.mjs ./raw-shots && node fix01b.mjs ./raw-shots
+node compose.mjs ./raw-shots ../Notebookソースマネージャー/store-assets
+```
+
+見出しや補足文は `compose.mjs` の `SLIDES` 配列にまとまっています。
 
 ## 掲載時のチェックリスト
 
-- [ ] スクリーンショットを5枚アップロード（上の推奨順）
+- [ ] スクリーンショットを5枚アップロード（ファイル名の 01〜05 の順）
 - [ ] 概要・詳細説明を日英それぞれのロケールページに設定
 - [ ] `dist/` を ZIP 化してアップロード（**`dist/` 以外を含めないこと**）
 - [ ] manifest の version がアップロードする ZIP と一致しているか確認
 - [ ] プライバシーへの取り組み欄に、ローカル処理・外部送信なしを記載
 - [ ] 単一用途の説明: 「NotebookLM のソース管理」
-- [ ] `activeTab` / `tabs` 権限の使用理由を記載
-      （開いている NotebookLM のタブを特定し、そのページ上で選択・削除を実行するため）
+- [ ] 権限の使用理由を記載
+      - `tabs` / `activeTab`: 操作対象の NotebookLM タブを特定するため
+      - `scripting` + `host_permissions: https://notebooklm.google.com/*`:
+        拡張機能の更新直後など、既に開いていたタブへスクリプトが入っていない場合に
+        再接続して一覧を読み込むため（自動復旧）
+      - いずれも notebooklm.google.com 以外のサイトにはアクセスしません
