@@ -329,6 +329,11 @@ function isVisibleAndEnabled(el) {
 
 function findDeleteConfirmButton() {
   const selectorCandidates = [
+    // 2026-07 の UI 刷新以降、確認ダイアログの実行ボタンは .primary-button
+    "mat-dialog-container button.primary-button",
+    ".mat-mdc-dialog-container button.primary-button",
+    ".cdk-overlay-container button.primary-button",
+    // 旧 UI 互換
     "mat-dialog-container button.submit",
     "mat-dialog-container button.submit-button",
     "mat-dialog-container button[color='warn']",
