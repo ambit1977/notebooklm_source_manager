@@ -234,6 +234,71 @@
     }
   }
 
+  // ---- ソース一覧の可視化（2026-07 UI 刷新対応） ---------------------------
+  // 新 UI では以下の状態でソース要素が DOM から取り除かれ、getSources() が 0 件になる。
+  //   1. ソースパネルを折りたたんでいる     → .source-panel に .panel-collapsed が付く
+  //   2. ラベルでグループ化されている       → 各グループは mat-expansion-panel で、初期状態は全て閉じている
+  // どちらも「一覧に何も表示されない」の原因になるため、収集前に開いておく。
+  const SOURCE_ITEM_SELECTOR = '.single-source-container';
+
+  function sourcePanelRoot() {
+    return document.querySelector('source-picker') || document.querySelector('.source-panel');
+  }
+
+  function isSourcePanelCollapsed() {
+    // aria-label は言語依存のため、クラスで判定する
+    const panel = document.querySelector('.source-panel');
+    return !!(panel && panel.classList.contains('panel-collapsed'));
+  }
+
+  async function openSourcePanel() {
+    if (!isSourcePanelCollapsed()) return false;
+    const btn = document.querySelector('.toggle-source-panel-button');
+    if (!btn) return false;
+    debugLog('Source panel is collapsed; opening it.');
+    btn.click();
+    for (let i = 0; i < 20; i++) {
+      await delay(150);
+      if (!isSourcePanelCollapsed()) return true;
+    }
+    return !isSourcePanelCollapsed();
+  }
+
+  async function expandSourceGroups() {
+    let expanded = 0;
+    // 展開によって新しいグループが描画される場合に備えて数回繰り返す
+    for (let pass = 0; pass < 5; pass++) {
+      const root = sourcePanelRoot();
+      if (!root) break;
+      const headers = Array.from(root.querySelectorAll('mat-expansion-panel-header'))
+        .filter(h => h.getAttribute('aria-expanded') === 'false');
+      if (!headers.length) break;
+      headers.forEach(h => h.click());
+      expanded += headers.length;
+      await delay(400);
+    }
+    if (expanded) debugLog('Expanded', expanded, 'source group(s).');
+    return expanded;
+  }
+
+  // パネル／グループを開いたうえで、描画件数が安定するまで待って件数を返す
+  async function ensureSourcesVisible() {
+    try {
+      await openSourcePanel();
+      await expandSourceGroups();
+    } catch (e) {
+      debugLog('ensureSourcesVisible error', e);
+    }
+    let last = -1;
+    for (let i = 0; i < 12; i++) {
+      const n = document.querySelectorAll(SOURCE_ITEM_SELECTOR).length;
+      if (n > 0 && n === last) return n;
+      last = n;
+      await delay(200);
+    }
+    return document.querySelectorAll(SOURCE_ITEM_SELECTOR).length;
+  }
+
   function findChipByIcon(iconText) {
     // 多様な DOM 構成に対応するため複数の方法で chip を検索
     const chips = Array.from(document.querySelectorAll('mat-chip, .mat-chip, .chip, button.chip'));
@@ -385,6 +450,8 @@ async function clickDeleteConfirmButton() {
 
 async function deleteSelectedSources(selectedIds) {
   let processed = 0;
+  // 削除中にパネルが閉じられていると対象要素を見失うため、開いた状態を保証する
+  await ensureSourcesVisible();
   for (let i = 0; i < selectedIds.length; i++) {
     let id = selectedIds[i];
     // 最新のソース状態を取得（削除対象が DOM 上からなくなっている可能性も考慮）
@@ -442,7 +509,8 @@ async function deleteSelectedSources(selectedIds) {
 }
 
   async function renameSources(renamePairs) {
-    const containers = document.querySelectorAll(".single-source-container");
+    await ensureSourcesVisible();
+    const containers = document.querySelectorAll(SOURCE_ITEM_SELECTOR);
     const results = [];
 
     for (const pair of renamePairs) {
@@ -491,7 +559,11 @@ async function deleteSelectedSources(selectedIds) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     debugLog("Content script received:", message);
     if (message.action === "getSources") {
-      sendResponse({ sources: getSources() });
+      // パネル／グループの展開を待つため非同期で応答する
+      ensureSourcesVisible()
+        .catch(e => debugLog('getSources ensure failed', e))
+        .then(() => sendResponse({ sources: getSources() }));
+      return true;
     }
     else if (message.action === "deleteSelected") {
       deleteSelectedSources(message.ids);
