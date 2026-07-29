@@ -111,6 +111,7 @@ const EXCLUDE_FROM_DIST = new Set([
   'docs',             // GitHub Pages 用ドキュメント
   'store-assets',     // ストア掲載用スクリーンショット（1280x800）
   'store-assets-raw',  // 説明を焼き込む前の素の画面
+  'store-assets-en',  // ストア掲載用（英語見出し版）
   'releases',         // 配布用 ZIP
   'dist.zip',         // 過去のリリース成果物
   'content.js.bk',    // バックアップ
