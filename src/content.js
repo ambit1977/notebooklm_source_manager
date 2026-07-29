@@ -268,48 +268,156 @@
     return null;
   }
     
-  async function addSource(url) {
-    if (!isValidUrl(url)) {
-      throw i18nMessage("invalidUrlMessage") + ": " + url;
-    }
-    const isYt = url.includes("youtube") || url.includes("youtu.be");
-    let iconText = isYt ? "video_youtube" : "web";
+  // ---- ソース追加（2026-07 UI 刷新対応） ---------------------------------
+  // 旧 UI: 「ソースを追加」→ mat-chip で種別選択 → input[formcontrolname="newUrl"]
+  //        に1件ずつ入力 → button[type="submit"].mat-primary
+  // 新 UI: 「ソースを追加」→「ウェブサイト」ボタン（ウェブと YouTube が統合され
+  //        種別選択は不要）→ textarea[formcontrolname="urls"] に改行区切りで
+  //        複数 URL をまとめて投入 →「挿入」ボタン
+  // 旧 UI のセレクタもフォールバックとして残している。
 
-    let addBtn = document.querySelector("button.add-source-button");
+  function overlayScope() {
+    return document.querySelector('.cdk-overlay-container') || document;
+  }
+
+  // 条件が成立するまで待つ。成立したら true、タイムアウトしたら false。
+  async function waitFor(predicate, timeoutMs, intervalMs) {
+    const step = intervalMs || 200;
+    const limit = Math.max(1, Math.ceil(timeoutMs / step));
+    for (let i = 0; i < limit; i++) {
+      try {
+        if (predicate()) return true;
+      } catch (e) {
+        debugLog('waitFor predicate error', e);
+      }
+      await delay(step);
+    }
+    try {
+      return !!predicate();
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Angular のリアクティブフォームに値を認識させるため、
+  // ネイティブの value セッター経由で設定してから input/change を発火する
+  function setInputValue(el, value) {
+    const proto = (typeof HTMLTextAreaElement !== 'undefined' && el instanceof HTMLTextAreaElement)
+      ? HTMLTextAreaElement.prototype
+      : HTMLInputElement.prototype;
+    const desc = Object.getOwnPropertyDescriptor(proto, 'value');
+    if (desc && desc.set) desc.set.call(el, value);
+    else el.value = value;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function findAddSourceButton() {
+    return document.querySelector('button.add-source-button')
+        || document.querySelector('.add-source-button');
+  }
+
+  // ダイアログ内の「ウェブサイト」ボタン。表示文言は言語依存なので
+  // アイコン名（link / video_youtube）を主、文言を従にして探す。
+  function findUrlSourceButton() {
+    const scope = overlayScope();
+    const buttons = Array.from(scope.querySelectorAll('button.drop-zone-icon-button, button'));
+    for (const b of buttons) {
+      const icons = Array.from(b.querySelectorAll('mat-icon'))
+        .map(i => (i.textContent || '').trim().toLowerCase());
+      if (icons.includes('link') || icons.includes('video_youtube')) return b;
+    }
+    const hints = ['ウェブサイト', 'website', 'url', 'link'];
+    return buttons.find(b => {
+      const t = (b.textContent || '').toLowerCase();
+      return hints.some(h => t.includes(h));
+    }) || null;
+  }
+
+  function findUrlInputField() {
+    const scope = overlayScope();
+    return scope.querySelector('textarea[formcontrolname="urls"]')
+        || scope.querySelector('input[formcontrolname="newUrl"]')  // 旧 UI 互換
+        || scope.querySelector('textarea');
+  }
+
+  function findInsertButton() {
+    const scope = overlayScope();
+    const candidates = [
+      'button.mat-mdc-unelevated-button.mat-primary',
+      'button[type="submit"].mat-mdc-unelevated-button.mat-primary',
+      'button.primary-button'
+    ];
+    for (const sel of candidates) {
+      const btns = Array.from(scope.querySelectorAll(sel)).filter(isVisibleAndEnabled);
+      // 「挿入」は末尾に配置されるため最後の候補を採用する
+      if (btns.length) return btns[btns.length - 1];
+    }
+    return null;
+  }
+
+  function isAddSourceDialogOpen() {
+    return !!document.querySelector('mat-dialog-container, .mat-mdc-dialog-container');
+  }
+
+  async function closeAddSourceDialog() {
+    const btn = overlayScope().querySelector('button.close-button') || findModalCloseButton();
+    if (btn) {
+      btn.click();
+      await delay(400);
+    }
+  }
+
+  // 複数 URL をまとめて追加する（新 UI は改行区切りで一括投入できる）
+  async function addSources(urls) {
+    const list = (Array.isArray(urls) ? urls : [urls])
+      .map(u => ('' + u).trim())
+      .filter(Boolean);
+    if (!list.length) return "Added: 0";
+
+    const invalid = list.filter(u => !isValidUrl(u));
+    if (invalid.length) {
+      throw i18nMessage("invalidUrlMessage") + ": " + invalid.join(', ');
+    }
+
+    const addBtn = findAddSourceButton();
     if (!addBtn) throw i18nMessage("errorClickAddSourceButton");
     addBtn.click();
-    await delay(100);
 
-    let chip = findChipByIcon(iconText);
-    if (!chip) throw "Chip for icon '" + iconText + "' not found.";
-    chip.click();
-    await delay(300);
+    if (!await waitFor(() => !!findUrlSourceButton(), 8000)) {
+      await closeAddSourceDialog();
+      throw i18nMessage("errorUrlSourceButtonNotFound");
+    }
+    findUrlSourceButton().click();
 
-    let inputEl = document.querySelector('input[formcontrolname="newUrl"]');
-    if (!inputEl) throw i18nMessage("errorUrlInputFieldNotFound");
-    inputEl.value = url;
-    inputEl.dispatchEvent(new Event("input", { bubbles: true }));
-    await delay(100);
-    inputEl.blur();
-    document.body.focus();
+    if (!await waitFor(() => !!findUrlInputField(), 8000)) {
+      await closeAddSourceDialog();
+      throw i18nMessage("errorUrlInputFieldNotFound");
+    }
+    const inputEl = findUrlInputField();
+    setInputValue(inputEl, list.join('\n'));
 
-    const insertBtnSelector = 'button[type="submit"].mat-mdc-unelevated-button.mat-primary';
-    let insertBtn = document.querySelector(insertBtnSelector);
-
-    if (!insertBtn || insertBtn.disabled) {
-      const closeButton = findModalCloseButton();
-      if (closeButton) {
-        closeButton.click();
-        debugLog("Close button clicked.");
-        await delay(300);
-      } else {
-        debugLog("Close button not found.");
-      }
+    // 入力が検証され「挿入」ボタンが有効になるのを待つ
+    if (!await waitFor(() => !!findInsertButton(), 8000)) {
+      await closeAddSourceDialog();
       throw i18nMessage("errorNoInsertButton");
     }
-    insertBtn.click();
-    await delay(2000);
+    findInsertButton().click();
 
+    // 取り込みには時間がかかるため、ダイアログが閉じるまで待つ
+    const done = await waitFor(() => !isAddSourceDialogOpen(), 60000, 500);
+    if (!done) {
+      debugLog('Add source dialog did not close within timeout.');
+      await closeAddSourceDialog();
+      throw i18nMessage("errorAddSourceTimeout");
+    }
+    await delay(1000);
+
+    return "Added: " + list.length;
+  }
+
+  async function addSource(url) {
+    await addSources([url]);
     return "Added: " + url;
   }
 
@@ -499,6 +607,12 @@ async function deleteSelectedSources(selectedIds) {
     }
     else if (message.action === "addSource") {
       addSource(message.url)
+        .then(result => sendResponse({ result }))
+        .catch(error => sendResponse({ error }));
+      return true;
+    }
+    else if (message.action === "addSources") {
+      addSources(message.urls)
         .then(result => sendResponse({ result }))
         .catch(error => sendResponse({ error }));
       return true;
