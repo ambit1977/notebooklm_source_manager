@@ -146,6 +146,23 @@
   "selectAll": {
     "message": "Select All / Deselect All",
     "description": "Label for selecting or deselecting all items"
+  },
+  "invalidUrlMessage": {
+    "message": "Invalid URL"
+  },
+  "errorClickAddSourceButton": {
+    "message": "Could not find the \"Add source\" button. Make sure a NotebookLM notebook tab is open."
+  },
+  "errorUrlSourceButtonNotFound": {
+    "message": "Could not find the \"Website\" button in the add-source dialog. The NotebookLM UI may have changed."
+  },
+  "errorUrlInputFieldNotFound": {
+    "message": "Could not find the URL input field. The NotebookLM UI may have changed."
+  },
+  "errorNoInsertButton": {
+    "message": "The \"Insert\" button did not become enabled. Please check the URL format."
+  },
+  "errorAddSourceTimeout": {
+    "message": "Importing the sources did not finish in time. Please check NotebookLM."
   }
-
 }

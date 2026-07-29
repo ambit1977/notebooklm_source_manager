@@ -357,6 +357,20 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
+  // 新 UI の追加ダイアログは改行区切りで複数 URL を一度に受け付けるため、
+  // 1件ずつダイアログを開き直さずまとめて投入する
+  function addSourceUrls(urls) {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ action: "addSources", urls }, resp => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError.message);
+        } else {
+          resolve(resp);
+        }
+      });
+    });
+  }
+
   // --- YouTube 専用一括追加ハンドラ ---
   function isYouTubeUrl(u) {
     try {
@@ -434,33 +448,27 @@ document.addEventListener("DOMContentLoaded", function() {
 
       prog.max = normalized.length;
       prog.value = 0;
-      let processed = 0;
       let errors = [];
       stat.innerText = `Start: ${normalized.length}`;
 
-      for (let url of normalized) {
-        try {
-          let resp = await addSourceUrl(url);
-          if (resp && resp.error) throw resp.error;
-        } catch (e) {
-          errors.push(`${url} => ${e}`);
-        }
-        processed++;
-        prog.value = processed;
-        stat.innerText = `Progress: ${processed}/${normalized.length}, ERR: ${errors.length}`;
-        // small delay to allow NotebookLM UI to settle
-        await new Promise(r => setTimeout(r, 150));
+      // 新 UI は一度のダイアログ操作でまとめて投入できるため、進捗は
+      // 「送信 → 完了」の2段階になる（1件ずつ開き直すより大幅に速い）
+      try {
+        let resp = await addSourceUrls(normalized);
+        if (resp && resp.error) throw resp.error;
+        prog.value = normalized.length;
+      } catch (e) {
+        errors.push(`${normalized.length} URL(s) => ${e}`);
       }
 
       if (errors.length) {
         errorDiv.innerText = errors.join('\n');
-        // leave the failed ones in textarea for retry
-        let failedUrls = errors.map(e => e.split(' => ')[0]);
-        textarea.value = failedUrls.join('\n');
+        // 失敗時は再試行できるよう入力を残す
       } else {
         errorDiv.innerText = '';
         textarea.value = '';
       }
+      stat.innerText = `Progress: ${errors.length ? 0 : normalized.length}/${normalized.length}, ERR: ${errors.length}`;
       stat.innerText += '\nDone.';
       // refresh source list
       reloadSources();
