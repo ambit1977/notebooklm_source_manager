@@ -197,8 +197,8 @@
 <body>
   <div class="container">
     <div class="tabs">
-      <div class="tab active" data-tab="deleteMode" id="deleteModeTab" data-i18n="deleteModeTab">Delete Mode</div>
-      <div class="tab" data-tab="urlAdditionMode" id="urlAdditionTab" data-i18n="batchAddUrlsTab">Batch Add URLs</div>
+  <div class="tab active" data-tab="deleteMode" id="deleteModeTab" data-i18n="deleteModeTab">削除モード</div>
+  <div class="tab" data-tab="urlAdditionMode" id="urlAdditionTab" data-i18n="batchAddUrlsTab">一括追加モード</div>
       <div class="tab" data-tab="renameMode" id="renameModeTab" data-i18n="renameModeTab">Rename Mode</div>
     </div>
 
@@ -227,18 +227,17 @@
       <button id="deleteSelected" data-i18n="deleteSelectedButton">Delete Selected Sources</button>
     </div>
 
-    <!-- URL Batch Add Mode -->
+    <!-- YouTube Batch Add Mode (専用化) -->
     <div id="urlAdditionMode" class="tab-content">
-      <h3 id="urlAdditionHeading" data-i18n="batchAddUrlsHeading">Batch Add URL Mode</h3>
-      <p id="urlAdditionInstruction" data-i18n="urlAdditionInstruction">
-        Enter multiple URLs line by line. YouTube or Web source is auto-chosen.
-      </p>
-      <textarea id="urlTextarea" placeholder="Put your URLs here" data-i18n-placeholder="urlTextareaPlaceholder"></textarea>
+  <h3 id="urlAdditionHeading">一括追加モード</h3>
+  <p id="urlAdditionInstruction">(ウェブサイトは公式側で一括追加できるようになったので機能削除)</p>
+      <p style="margin:6px 0; color:#555; font-size:0.95em">YouTube の共有リンクを1行ずつ貼り付けてください。短縮リンクや watch?v= を自動正規化します。</p>
+      <textarea id="ytTextarea" placeholder="Paste YouTube URLs (one per line)" data-i18n-placeholder="ytTextareaPlaceholder"></textarea>
       <br>
-      <button id="addUrlsButton" data-i18n="addUrlsButton">Add URLs</button>
-      <div id="urlError"></div>
-      <progress id="urlProgress" max="100" value="0"></progress>
-      <div id="progressStatus"></div>
+      <button id="addYtButton">Add YouTube URLs</button>
+      <div id="ytError"></div>
+      <progress id="ytProgress" max="100" value="0"></progress>
+      <div id="ytProgressStatus"></div>
     </div>
 
     <!-- Rename Mode -->

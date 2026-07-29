@@ -64,7 +64,7 @@
     "description": "重複チェックボタンのテキスト"
   },
   "batchAddUrlsHeading": {
-  "message": "YouTube動画一括追加",
+    "message": "一括追加モード",
     "description": "URL一括追加モードの見出し"
   },
   "renameModeHeading": {
@@ -146,5 +146,23 @@
   "selectAll": {
     "message": "全選択／全解除",
     "description": "全選択または全解除のラベル"
+  },
+  "invalidUrlMessage": {
+    "message": "無効な URL です"
+  },
+  "errorClickAddSourceButton": {
+    "message": "「ソースを追加」ボタンが見つかりません。NotebookLM のタブを開いた状態で実行してください。"
+  },
+  "errorUrlSourceButtonNotFound": {
+    "message": "追加ダイアログの「ウェブサイト」ボタンが見つかりません。NotebookLM の UI が変更された可能性があります。"
+  },
+  "errorUrlInputFieldNotFound": {
+    "message": "URL の入力欄が見つかりません。NotebookLM の UI が変更された可能性があります。"
+  },
+  "errorNoInsertButton": {
+    "message": "「挿入」ボタンが有効になりませんでした。URL の形式を確認してください。"
+  },
+  "errorAddSourceTimeout": {
+    "message": "ソースの取り込みが時間内に完了しませんでした。NotebookLM 側の状態を確認してください。"
   }
 }
