@@ -60,21 +60,44 @@ function bumpManifestPatchFixedMinor(manifestPath, fixedMajorMinor = '1.2') {
   return newVersion;
 }
 
-// Update both src/manifest.json and root manifest.json if present
+// バージョンの採番は明示指定したときだけ行う。
+// 以前はビルドのたびに自動で上がっていたため、動作確認で数回ビルドしただけで
+// 版数が飛び、配布用 ZIP と manifest の版数がずれる事故が起きた。
+//   node build.js            … 版数はそのまま（既定）
+//   node build.js --bump     … パッチ版数を1つ上げる
+const shouldBump = process.argv.includes('--bump') || process.argv.includes('--release');
+
 let bumpedVersion = null;
 const srcManifest = path.join(SRC, 'manifest.json');
 const rootManifest = path.join(__dirname, 'manifest.json');
 const FIXED_MAJOR_MINOR = '1.2';
-if (fs.existsSync(srcManifest)) {
-  bumpedVersion = bumpManifestPatchFixedMinor(srcManifest, FIXED_MAJOR_MINOR);
-  if (bumpedVersion) console.log('Bumped src/manifest.json to', bumpedVersion);
+
+function readVersion(p) {
+  try { return JSON.parse(fs.readFileSync(p, 'utf8')).version || null; } catch (e) { return null; }
 }
-if (fs.existsSync(rootManifest)) {
-  // keep root manifest in sync
-  const rootBumped = bumpManifestPatchFixedMinor(rootManifest, FIXED_MAJOR_MINOR);
-  if (rootBumped) console.log('Bumped root manifest.json to', rootBumped);
-  // prefer version from src if both exist
-  if (!bumpedVersion && rootBumped) bumpedVersion = rootBumped;
+
+if (shouldBump) {
+  if (fs.existsSync(srcManifest)) {
+    bumpedVersion = bumpManifestPatchFixedMinor(srcManifest, FIXED_MAJOR_MINOR);
+    if (bumpedVersion) console.log('Bumped src/manifest.json to', bumpedVersion);
+  }
+  if (fs.existsSync(rootManifest)) {
+    // keep root manifest in sync
+    const rootBumped = bumpManifestPatchFixedMinor(rootManifest, FIXED_MAJOR_MINOR);
+    if (rootBumped) console.log('Bumped root manifest.json to', rootBumped);
+    if (!bumpedVersion && rootBumped) bumpedVersion = rootBumped;
+  }
+} else {
+  // 版数はそのまま。root と src がずれていたら src に合わせる
+  const srcV = readVersion(srcManifest);
+  const rootV = readVersion(rootManifest);
+  if (srcV && rootV && srcV !== rootV) {
+    const obj = JSON.parse(fs.readFileSync(rootManifest, 'utf8'));
+    obj.version = srcV;
+    fs.writeFileSync(rootManifest, JSON.stringify(obj, null, 2) + '\n', 'utf8');
+    console.log('Synced root manifest.json to', srcV);
+  }
+  console.log('Version:', srcV || rootV, '(--bump で採番)');
 }
 
 // 配布物に含めてはいけない／含める必要のないもの。

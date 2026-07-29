@@ -1,4 +1,4 @@
-# Chrome Web Store 掲載内容（v1.2.38）
+# Chrome Web Store 掲載内容（v1.2.39）
 
 そのままコピー＆ペーストできる形式でまとめています。
 文字数は Chrome Web Store の上限（概要 132 文字／詳細説明 16,000 文字）に収めています。
@@ -88,7 +88,7 @@ https://github.com/ambit1977/notebooklm_source_manager
 ・本拡張機能は Google LLC の提供物ではなく、公式のものでもありません。
 
 
-■ 更新履歴（v1.2.38）
+■ 更新履歴（v1.2.39）
 
 2026年7月の NotebookLM（Gemini Notebook）の UI 刷新に対応しました。
 
@@ -192,7 +192,7 @@ https://github.com/ambit1977/notebooklm_source_manager
 ・This extension is not provided by, or affiliated with, Google LLC.
 
 
-■ What's new in v1.2.38
+■ What's new in v1.2.39
 
 Updated for the July 2026 NotebookLM (Gemini Notebook) interface redesign.
 
