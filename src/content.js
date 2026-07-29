@@ -34,6 +34,30 @@
             titleHint = (tEl && (tEl.innerText || tEl.textContent) || el.getAttribute && (el.getAttribute('title') || '')) .toLowerCase();
           }
 
+          // 0) 種別アイコンから判定（2026-07 UI 刷新対応・最優先）
+          // 新 UI はソース項目から <a> を廃止した代わりに、種別を表す専用アイコンを持つ:
+          //   - ファイル/テキスト系: <mat-icon class="source-item-source-icon"> に
+          //     Google シンボル名（markdown / article / video_youtube ...）がテキストで入る
+          //   - ウェブ URL: mat-icon ではなく favicon の <img src="...s2/favicons?domain=...">
+          // これが最も信頼できるシグナルなので、他のヒューリスティックより先に見る。
+          const typeIcon = el.querySelector && el.querySelector('.source-item-source-icon');
+          const iconName = typeIcon ? (typeIcon.textContent || '').trim().toLowerCase() : '';
+          if (iconName) {
+            if (iconName.includes('markdown')) return 'markdown';
+            if (iconName.includes('youtube') || iconName.includes('video') || iconName.includes('smart_display')) return 'video_youtube';
+            if (iconName.includes('pdf')) return 'drive_pdf';
+            if (iconName.includes('presentation') || iconName.includes('slide')) return 'presentation';
+            if (iconName.includes('audio') || iconName.includes('mic') || iconName.includes('music') || iconName.includes('headphones')) return 'audio';
+            if (iconName.includes('article') || iconName.includes('description')) return 'article';
+            if (iconName.includes('docs') || iconName.includes('document')) return 'document';
+            if (iconName.includes('text') || iconName.includes('note') || iconName.includes('sticky')) return 'text';
+            if (iconName.includes('web') || iconName.includes('language') || iconName.includes('public') || iconName.includes('link')) return 'web';
+            debugLog('Unmapped source icon name:', iconName);
+          }
+          // favicon が付いている＝ウェブ URL のソース
+          const faviconEl = el.querySelector && el.querySelector('img[src*="s2/favicons"], .source-item-icon-container img');
+          if (faviconEl) return 'web';
+
           // 1) リンクの href をチェックして、拡張子やサービス名からタイプ推定
           const links = Array.from(el.querySelectorAll('a')).map(a => (a.href || '').trim()).filter(Boolean);
           for (const href of links) {
@@ -176,6 +200,17 @@
       // infer origin: file upload/link vs manual input vs unknown
       function inferSourceOrigin(el) {
         try {
+          // 2026-07 UI 刷新対応: ソース項目から <a> が廃止されたため、
+          // まず favicon（外部 URL 由来）と種別アイコン（アップロード由来）で判定する
+          if (el.querySelector && el.querySelector('img[src*="s2/favicons"], .source-item-icon-container img')) return 'file';
+          const typeIcon = el.querySelector && el.querySelector('.source-item-source-icon');
+          const iconName = typeIcon ? (typeIcon.textContent || '').trim().toLowerCase() : '';
+          if (iconName) {
+            // 貼り付けテキスト／メモ系は manual、それ以外の種別アイコンはファイル由来とみなす
+            if (iconName.includes('note') || iconName.includes('sticky') || iconName.includes('edit')) return 'manual';
+            return 'file';
+          }
+
           // if there are links that point to files or drive, treat as file
           const links = Array.from(el.querySelectorAll('a')).map(a => (a.href || '').trim()).filter(Boolean);
           if (links.length > 0) {
