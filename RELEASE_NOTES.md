@@ -1,17 +1,33 @@
-# Release notes for notebooklm-source-manager
+# Release notes — notebooklm-source-manager
 
-Version: 1.2.26
+## v1.2.33
 
-## Summary
-- Updated display name and localized extension names (English and Japanese).
-- YouTube batch-add UI and localized tab labels refined.
-- Locale updates and build pipeline improvements.
+2026年7月の NotebookLM（Gemini Notebook）UI 刷新への対応。
+ストア公開版 1.2.27 はソース追加が完全に機能しない状態だったため、その修正を含む。
 
-## Changes
-- Localization: updated `_locales/en/messages.json` and `_locales/ja/messages.json` for new extension names and descriptions.
-- UI: unified tab and heading labels to "一括追加モード" / "Batch Add URL Mode" as appropriate.
-- Build: bump-on-build behavior used to create release with version 1.2.26.
+### 修正
+- **ソース追加が動作しない問題**（A / A2）
+  追加ダイアログが刷新され、種別選択の `mat-chip`、URL 入力欄、挿入ボタンの
+  いずれもセレクタが変わっていた。新フローに合わせて書き直し、
+  複数 URL を1回のダイアログ操作でまとめて投入するようにした。
+- **ソース一覧が0件になる問題**（B）
+  ソースパネルを折りたたんでいる場合、およびラベルでグループ化している場合に
+  ソース要素が DOM から取り除かれるため。収集前にパネルとグループを開くようにした。
+- **削除確認ダイアログ**（C）
+  実行ボタンのクラスが `.primary-button` に変更されたため、明示的な候補を追加。
+- **ソース種別の判定**（D）
+  ソース項目から `<a>` が廃止されたため、種別アイコン名と favicon で判定するようにした。
+- **ソース名が空欄になる問題**（E）
+  表示領域外の項目で `innerText` が空を返すため、`textContent` / `aria-label` を優先。
+- **一括追加モードの未翻訳文言**（G）
+  日本語 UI でボタンが英語のまま、英語 UI で説明が日本語のままだったのを修正。
 
-## Notes
-- Deletion operations are irreversible. Please double-check before bulk deletion.
-- If Chrome displays old labels, try removing and reloading the unpacked extension from `dist` to ensure the updated `_locales` are loaded.
+### ビルド / リポジトリ
+- 配布パッケージへの不要ファイル混入を防止（F）。
+  `tmp-profile`（Chrome プロファイル実体）等が dist に入っていた。15MB → 124KB。
+- `tmp-profile` を Git 履歴から除去。
+
+### 注意
+- 削除操作は取り消せません。実行前に選択内容をご確認ください。
+- 本拡張は NotebookLM の画面を操作して動作するため、Google 側の変更で
+  一時的に動作しなくなる場合があります。
