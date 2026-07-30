@@ -4,15 +4,15 @@ Chrome ウェブストアでの公開が終わるまでの、暫定的な配布�
 
 | ファイル | 用途 |
 |---|---|
-| `notebooklm-source-manager-1.2.39-unpacked.zip` | **配る場合はこちら。** 展開すると `notebooklm-source-manager-1.2.39/` フォルダができます |
-| `notebooklm-source-manager-1.2.39-webstore.zip` | Chrome ウェブストアへのアップロード用（ZIP のルートに `manifest.json` がある形式） |
+| `notebooklm-source-manager-1.2.41-unpacked.zip` | **配る場合はこちら。** 展開すると `notebooklm-source-manager-1.2.41/` フォルダができます |
+| `notebooklm-source-manager-1.2.41-webstore.zip` | Chrome ウェブストアへのアップロード用（ZIP のルートに `manifest.json` がある形式） |
 
 ---
 
 ## インストール手順（受け取った方向け）
 
-1. `notebooklm-source-manager-1.2.39-unpacked.zip` を展開します
-   `notebooklm-source-manager-1.2.39` というフォルダができます。
+1. `notebooklm-source-manager-1.2.41-unpacked.zip` を展開します
+   `notebooklm-source-manager-1.2.41` というフォルダができます。
    **このフォルダは削除しないでください。** Chrome はここを直接読み込み続けるため、
    消したり移動したりすると拡張機能が動かなくなります。
 
@@ -40,7 +40,7 @@ A. ストア外から読み込んだ拡張機能に対して Chrome が毎回出
 
 **Q. ソースの一覧が表示されません**
 
-A. v1.2.39 では、拡張機能を読み込んだ直後でも自動で再接続するようにしています。
+A. v1.2.41 では、拡張機能を読み込んだ直後でも自動で再接続するようにしています。
 それでも表示されない場合は、画面上に原因と対処法が出るので、
 案内に従って「ページを再読み込み」または「再試行」を押してください。
 

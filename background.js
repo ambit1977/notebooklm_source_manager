@@ -20,10 +20,19 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log(`NotebookLM Source Manager installed - Version: ${EXTENSION_VERSION}`);
 });
 
-const NOTEBOOK_PAGE_RE = /^https:\/\/notebooklm\.google\.com\/notebook\//;
+// NotebookLM（Gemini Notebook）は配信されるドメインが2種類ある。
+// アカウントによって notebooklm.google.com のまま提供される場合と、
+// notebook.google.com で提供される場合があり、リダイレクトされるとは限らない。
+// 片方しか見ていないと「ノートブックを開いているのにタブが見つかりません」になる。
+const NOTEBOOK_URL_PATTERNS = [
+  'https://notebooklm.google.com/*',
+  'https://notebook.google.com/*'
+];
+const NOTEBOOK_SITE_RE = /^https:\/\/(notebooklm|notebook)\.google\.com\//;
+const NOTEBOOK_PAGE_RE = /^https:\/\/(notebooklm|notebook)\.google\.com\/notebook\//;
 
 function isNotebookLmUrl(url) {
-  return !!url && url.startsWith('https://notebooklm.google.com/');
+  return NOTEBOOK_SITE_RE.test(url || '');
 }
 function isNotebookPageUrl(url) {
   return NOTEBOOK_PAGE_RE.test(url || '');
@@ -50,7 +59,8 @@ async function resolveNotebookTab() {
 
   // 記録を失っている場合（タブを閉じた／別サイトへ移動した）に限り、
   // 開いているノートブックを探し直す
-  const found = await chrome.tabs.query({ url: 'https://notebooklm.google.com/notebook/*' });
+  const found = (await chrome.tabs.query({ url: NOTEBOOK_URL_PATTERNS }))
+    .filter(t => isNotebookPageUrl(t.url));
   if (found.length) {
     notebooklmTabId = found[0].id;
     return { tab: found[0] };
