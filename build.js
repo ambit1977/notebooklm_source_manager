@@ -88,16 +88,23 @@ if (shouldBump) {
     if (!bumpedVersion && rootBumped) bumpedVersion = rootBumped;
   }
 } else {
-  // 版数はそのまま。root と src がずれていたら src に合わせる
   const srcV = readVersion(srcManifest);
-  const rootV = readVersion(rootManifest);
-  if (srcV && rootV && srcV !== rootV) {
-    const obj = JSON.parse(fs.readFileSync(rootManifest, 'utf8'));
-    obj.version = srcV;
-    fs.writeFileSync(rootManifest, JSON.stringify(obj, null, 2) + '\n', 'utf8');
-    console.log('Synced root manifest.json to', srcV);
+  console.log('Version:', srcV, '(--bump で採番)');
+}
+
+// ルートの manifest.json を src の内容そのものに揃える。
+//
+// これまでは version フィールドしか同期しておらず、src 側にだけ追加した
+// permissions / host_permissions がルートに反映されないまま放置されていた。
+// リポジトリのルートは、そのまま「パッケージ化されていない拡張機能」として
+// 読み込める構成になっているため、版数だけ新しく権限が欠けた拡張機能が
+// できあがり、content script の再注入が権限エラーで失敗していた。
+if (fs.existsSync(srcManifest) && fs.existsSync(rootManifest)) {
+  const srcRaw = fs.readFileSync(srcManifest, 'utf8');
+  if (fs.readFileSync(rootManifest, 'utf8') !== srcRaw) {
+    fs.writeFileSync(rootManifest, srcRaw, 'utf8');
+    console.log('Synced root manifest.json from src/manifest.json');
   }
-  console.log('Version:', srcV || rootV, '(--bump で採番)');
 }
 
 // 配布物に含めてはいけない／含める必要のないもの。

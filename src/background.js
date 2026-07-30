@@ -95,17 +95,24 @@ chrome.action.onClicked.addListener((tab) => {
     notebooklmTabId = tab.id;
   }
 
-  if (filterWindowId !== null) {
-    chrome.windows.get(filterWindowId, (win) => {
-      if (chrome.runtime.lastError || !win) {
-        createFilterWindow();
-      } else {
-        chrome.windows.update(filterWindowId, { focused: true });
+  // 既存のフィルターウィンドウがあれば前面に出す。
+  // filterWindowId はメモリ上の変数のため Service Worker が再起動すると失われる。
+  // その状態でアイコンを押すとウィンドウが増えてしまうので、
+  // 実際に開いている filter.html を探して見つかればそれを使う。
+  (async () => {
+    try {
+      const url = chrome.runtime.getURL('filter.html');
+      const tabs = await chrome.tabs.query({ url });
+      if (tabs.length) {
+        filterWindowId = tabs[0].windowId;
+        await chrome.windows.update(filterWindowId, { focused: true });
+        return;
       }
-    });
-  } else {
+    } catch (e) {
+      console.warn('既存のフィルターウィンドウ検索に失敗:', e && e.message);
+    }
     createFilterWindow();
-  }
+  })();
 });
 
 // フィルターウィンドウ作成関数
@@ -144,9 +151,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 // メッセージハンドリング処理
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // deletionProgress は content script からの進捗通知。フィルターウィンドウへ中継する。
+  // deletionProgress は content script からの進捗通知。
+  // chrome.runtime.sendMessage は拡張機能内の全コンテキストへ配信されるため、
+  // フィルターウィンドウには既に直接届いている。ここで中継すると二重配信になり、
+  // エラー件数が実際の倍に表示されていた。中継せず何もしない。
   if (message.action === "deletionProgress") {
-    chrome.runtime.sendMessage(message).catch(() => {});
     return;
   }
 
