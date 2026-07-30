@@ -605,41 +605,21 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   /////////////////////////////////////////////////////////////
-  // 6. マスターウィンドウ制御
-  const MASTER_KEY = "filterWindowMaster";
-  const MASTER_EXPIRATION = 5000; // 5秒
-  const myId = Date.now() + "-" + Math.random();
-  const now = Date.now();
-  let stored = localStorage.getItem(MASTER_KEY);
-
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      if (now - parsed.timestamp < MASTER_EXPIRATION) {
-        console.warn("別のフィルターウィンドウが既に動作中のため、このウィンドウを閉じます。");
-        window.close();
-      } else {
-        localStorage.setItem(MASTER_KEY, JSON.stringify({ id: myId, timestamp: now }));
-        window.isMaster = true;
-        console.log("前のマスターは期限切れ。現在のウィンドウがマスターに設定されました。");
-      }
-    } catch (e) {
-      localStorage.setItem(MASTER_KEY, JSON.stringify({ id: myId, timestamp: now }));
-      window.isMaster = true;
-      console.log("有効なマスターが見つからなかったため、このウィンドウがマスターに設定されました。");
-    }
-  } else {
-    localStorage.setItem(MASTER_KEY, JSON.stringify({ id: myId, timestamp: now }));
-    window.isMaster = true;
-    console.log("このフィルターウィンドウがマスターに設定されました。");
-  }
-
-  window.addEventListener("unload", function() {
-    if (window.isMaster) {
-      localStorage.removeItem(MASTER_KEY);
-      console.log("マスターフィルターウィンドウが閉じられたため、キーを削除しました。");
-    }
-  });
+  // 6. （旧）マスターウィンドウ制御は廃止した
+  //
+  // 以前は localStorage に「マスター」の印を書き、5秒以内に別のウィンドウが
+  // 開かれた場合は window.close() で自分を閉じていた。しかしこの仕組みには
+  // 次の問題があった。
+  //   - 印の解除を unload に頼っていた。unload は廃止予定で発火しないことが多く、
+  //     印が消えないまま残る（DevTools も「Unload event listeners are deprecated」と警告）
+  //   - タイムスタンプは開いた時に一度書くだけで更新しないため、
+  //     「5秒」という期限に実質的な意味がない
+  //   - 条件が噛み合うと、正当に開いたウィンドウが自分を閉じてしまい、
+  //     利用者からは「アイコンを押したのに何も起きない」ように見える
+  //
+  // ウィンドウの重複は background.js 側で既に防いでいるため、二重管理をやめた。
+  // 残っている古い印は掃除しておく。
+  try { localStorage.removeItem("filterWindowMaster"); } catch (e) {}
 
   /////////////////////////////////////////////////////////////
   // 7. ボタンイベント設定と初期ロード
@@ -707,9 +687,23 @@ document.addEventListener("DOMContentLoaded", function() {
         delContainer.appendChild(delStatus);
       }
       delStatus.innerText = i18nMessage("deletionInProgress") || "削除中...";
-      
+
+      // 前回の削除状態が残っていると進捗の合計件数が更新されず、
+      // 完了判定に到達しないまま「削除中...」で固まる。開始時に必ず初期化する。
+      deletionState = { total: selectedIds.length, processed: 0, errorCount: 0 };
+      delProg.max = selectedIds.length;
+      delProg.value = 0;
+
       chrome.runtime.sendMessage({ action: "deleteSelected", ids: selectedIds }, function(response) {
         console.log("deleteSelected 応答:", response);
+        // 応答を捨てていたため、ページと通信できない場合でも
+        // 「削除中...」の表示のまま何も起きないように見えていた。
+        const failed = chrome.runtime.lastError || (response && response.error);
+        if (failed) {
+          delContainer.remove();
+          deletionState = { total: 0, processed: 0, errorCount: 0 };
+          showLoadFailureBanner((response && response.errorCode) || "SCRIPT_UNAVAILABLE");
+        }
       });
     });
   }
