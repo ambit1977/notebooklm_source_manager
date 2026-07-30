@@ -44,6 +44,30 @@
     return "No Title";
   }
 
+  // ファイル名の拡張子から種別を推定する。
+  // 判別できないときは null を返し、呼び出し側の判定を上書きしない。
+  function typeFromFileName(name) {
+    const m = ('' + (name || '')).toLowerCase().trim().match(/\.([a-z0-9]{1,8})$/);
+    if (!m) return null;
+    switch (m[1]) {
+      case 'md':
+      case 'markdown': return 'markdown';
+      case 'txt':      return 'text';
+      case 'pdf':      return 'drive_pdf';
+      case 'doc':
+      case 'docx':     return 'document';
+      case 'ppt':
+      case 'pptx':     return 'presentation';
+      case 'mp3':
+      case 'wav':
+      case 'm4a':
+      case 'ogg':
+      case 'flac':
+      case 'aac':      return 'audio';
+      default:         return null;
+    }
+  }
+
   // 安定版に準じた getSources(): 各ソースのIDは index を使用
   function getSources() {
     let sources = [];
@@ -80,8 +104,18 @@
             if (iconName.includes('pdf')) return 'drive_pdf';
             if (iconName.includes('presentation') || iconName.includes('slide')) return 'presentation';
             if (iconName.includes('audio') || iconName.includes('mic') || iconName.includes('music') || iconName.includes('headphones')) return 'audio';
-            if (iconName.includes('article') || iconName.includes('description')) return 'article';
-            if (iconName.includes('docs') || iconName.includes('document')) return 'document';
+            // article / description / docs / document は「汎用の書類」アイコンで、
+            // 中身の種類までは表していない。実際、Google ドライブから取り込んだ
+            // Markdown は NotebookLM 側が article アイコンで表示するため、
+            // そのままでは MD ではなく Docs 扱いになってしまう
+            //（ローカルから添付した .md は markdown アイコンになるので食い違う）。
+            // 汎用アイコンのときだけ、ファイル名の拡張子で補正する。
+            if (iconName.includes('article') || iconName.includes('description')
+                || iconName.includes('docs') || iconName.includes('document')) {
+              const byName = typeFromFileName(titleArg || titleHint);
+              if (byName) return byName;
+              return (iconName.includes('docs') || iconName.includes('document')) ? 'document' : 'article';
+            }
             if (iconName.includes('text') || iconName.includes('note') || iconName.includes('sticky')) return 'text';
             if (iconName.includes('web') || iconName.includes('language') || iconName.includes('public') || iconName.includes('link')) return 'web';
             debugLog('Unmapped source icon name:', iconName);
