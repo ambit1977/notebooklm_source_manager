@@ -665,63 +665,73 @@ async function clickDeleteConfirmButton() {
   return false;
 }
 
+// 削除の中断要求。フィルターウィンドウの「中断」ボタンから立てられる。
+let deleteAbortRequested = false;
+
 async function deleteSelectedSources(selectedIds) {
   let processed = 0;
+  deleteAbortRequested = false;
   // 削除中にパネルが閉じられていると対象要素を見失うため、開いた状態を保証する
   await ensureSourcesVisible();
+
+  const notify = (payload) => {
+    chrome.runtime.sendMessage(Object.assign({
+      action: "deletionProgress",
+      processed: processed,
+      total: selectedIds.length
+    }, payload)).catch(() => {});
+  };
+
   for (let i = 0; i < selectedIds.length; i++) {
+    // 1件の削除は途中で止めると中途半端な状態になりうるので、
+    // 区切りの良いここでだけ中断を受け付ける。
+    if (deleteAbortRequested) {
+      notify({ id: null, status: "aborted", remaining: selectedIds.length - processed });
+      return;
+    }
+
     let id = selectedIds[i];
     // 最新のソース状態を取得（削除対象が DOM 上からなくなっている可能性も考慮）
     let src = getSources().find(s => s.id === id);
     if (!src) {
       processed++;
-      // ソースが見つからなければエラーとして通知
-      chrome.runtime.sendMessage({
-        action: "deletionProgress",
-        id: id,
-        status: "error",
-        error: "Source not found",
-        processed: processed,
-        total: selectedIds.length
-      });
+      notify({ id: id, status: "error", error: "Source not found" });
       continue;
     }
     try {
-      // 各ソースに対する削除操作（イベントシミュレーション）
+      // 各手順は「次に必要な要素が現れるまで待つ」方式にしている。
+      // 以前は各段階で固定 500ms、さらに1件ごとに 1500ms 待っており、
+      // 1件あたり最低 3.5 秒かかっていた（200件で約12分）。
+      // 実際には要素はもっと早く出てくるので、出た時点で次へ進める。
       src.element.dispatchEvent(new Event("mouseenter", { bubbles: true }));
-      await delay(500);
-      let moreBtn = src.element.querySelector(".source-item-more-button");
-      if (moreBtn) moreBtn.click();
-      else throw new Error("More button not found");
-      await delay(500);
-      let delBtn = document.querySelector(".more-menu-delete-source-button");
-      if (delBtn) delBtn.click();
-      else throw new Error("Delete button not found");
-      await delay(500);
+
+      let moreBtn = null;
+      await waitFor(() => (moreBtn = src.element.querySelector(".source-item-more-button")) && isVisibleAndEnabled(moreBtn), 5000, 50);
+      if (!moreBtn) throw new Error("More button not found");
+      moreBtn.click();
+
+      let delBtn = null;
+      await waitFor(() => (delBtn = document.querySelector(".more-menu-delete-source-button")) && isVisibleAndEnabled(delBtn), 5000, 50);
+      if (!delBtn) throw new Error("Delete button not found");
+      delBtn.click();
+
       const confirmClicked = await clickDeleteConfirmButton();
       if (!confirmClicked) throw new Error("Confirm button not found");
-      await delay(500);
+
+      // 確認ボタンを押しただけでは削除の完了は保証されない。
+      // 対象の要素が DOM から取り除かれるのを、この処理の完了合図として待つ。
+      await waitFor(() => !src.element.isConnected, 15000, 100);
+
       src.element.dispatchEvent(new Event("mouseleave", { bubbles: true }));
       processed++;
-      chrome.runtime.sendMessage({
-        action: "deletionProgress",
-        id: id,
-        status: "success",
-        processed: processed,
-        total: selectedIds.length
-      });
+      notify({ id: id, status: "success" });
     } catch(e) {
       processed++;
-      chrome.runtime.sendMessage({
-        action: "deletionProgress",
-        id: id,
-        status: "error",
-        error: e.message,
-        processed: processed,
-        total: selectedIds.length
-      });
+      notify({ id: id, status: "error", error: e.message });
     }
-    await delay(1500);
+    // 連続操作で NotebookLM 側の描画が追いつかないことがあるため、
+    // ごく短い間隔だけ空ける
+    await delay(150);
   }
 }
 
@@ -792,6 +802,11 @@ async function deleteSelectedSources(selectedIds) {
     else if (message.action === "deleteSelected") {
       deleteSelectedSources(message.ids);
       sendResponse({ result: "deleteSelected initiated" });
+    }
+    else if (message.action === "abortDelete") {
+      // 進行中の1件は最後まで実行し、その区切りで停止する
+      deleteAbortRequested = true;
+      sendResponse({ result: "abort requested" });
     }
     else if (message.action === "addSource") {
       addSource(message.url)
