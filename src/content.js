@@ -465,6 +465,44 @@
     }
   }
 
+  // DOM の変化を待つ。タイマーではなく MutationObserver を使うのが要点。
+  //
+  // Chrome は非表示タブの setTimeout を最低 1 秒に引き伸ばす（さらに数分後には
+  // より強い抑制がかかる）。そのためポーリングで待つ実装だと、他のタブで
+  // 作業している間だけ削除が極端に遅くなる。実際に「別タブで作業していると
+  // カタツムリのように遅い。NotebookLM のタブを表示していると多少速い」という
+  // 報告を受けている。
+  //
+  // MutationObserver のコールバックはタイマー抑制の対象外で、DOM が変化した
+  // 時点で呼ばれる。これによりタブが見えていても隠れていても同じ速度で進む。
+  // タイムアウト用の setTimeout だけは残すが、これは失敗時の保険なので
+  // 抑制されても実害はない。
+  function waitForDom(predicate, timeoutMs) {
+    return new Promise(resolve => {
+      let settled = false;
+      const finish = (v) => {
+        if (settled) return;
+        settled = true;
+        observer.disconnect();
+        clearTimeout(timer);
+        resolve(v);
+      };
+      const check = () => {
+        let ok = false;
+        try { ok = !!predicate(); } catch (e) { ok = false; }
+        if (ok) finish(true);
+        return ok;
+      };
+      const observer = new MutationObserver(check);
+      const timer = setTimeout(() => finish(false), timeoutMs || 8000);
+      // 監視を始める前に一度確認する（既に条件を満たしている場合）
+      if (check()) return;
+      observer.observe(document.documentElement, {
+        childList: true, subtree: true, attributes: true
+      });
+    });
+  }
+
   // Angular のリアクティブフォームに値を認識させるため、
   // ネイティブの value セッター経由で設定してから input/change を発火する
   function setInputValue(el, value) {
@@ -652,17 +690,13 @@ function findDeleteConfirmButton() {
 }
 
 async function clickDeleteConfirmButton() {
-  // Wait-and-retry to handle async dialog rendering.
-  const maxRetries = 8;
-  for (let i = 0; i < maxRetries; i++) {
-    const btn = findDeleteConfirmButton();
-    if (btn) {
-      btn.click();
-      return true;
-    }
-    await delay(250);
-  }
-  return false;
+  // 確認ダイアログの描画を待つ。タイマーではなく DOM の変化で待つため、
+  // タブが非表示でも表示中と同じ速さで進む。
+  let btn = null;
+  await waitForDom(() => (btn = findDeleteConfirmButton()), 8000);
+  if (!btn) return false;
+  btn.click();
+  return true;
 }
 
 // 削除の中断要求。フィルターウィンドウの「中断」ボタンから立てられる。
@@ -699,19 +733,20 @@ async function deleteSelectedSources(selectedIds) {
       continue;
     }
     try {
-      // 各手順は「次に必要な要素が現れるまで待つ」方式にしている。
+      // 各手順は「次に必要な要素が現れたら即進む」方式にしている。
       // 以前は各段階で固定 500ms、さらに1件ごとに 1500ms 待っており、
       // 1件あたり最低 3.5 秒かかっていた（200件で約12分）。
-      // 実際には要素はもっと早く出てくるので、出た時点で次へ進める。
+      // 待機はすべて waitForDom（MutationObserver）で行うため、
+      // タブが非表示でもタイマー抑制の影響を受けない。
       src.element.dispatchEvent(new Event("mouseenter", { bubbles: true }));
 
       let moreBtn = null;
-      await waitFor(() => (moreBtn = src.element.querySelector(".source-item-more-button")) && isVisibleAndEnabled(moreBtn), 5000, 50);
+      await waitForDom(() => (moreBtn = src.element.querySelector(".source-item-more-button")) && isVisibleAndEnabled(moreBtn), 8000);
       if (!moreBtn) throw new Error("More button not found");
       moreBtn.click();
 
       let delBtn = null;
-      await waitFor(() => (delBtn = document.querySelector(".more-menu-delete-source-button")) && isVisibleAndEnabled(delBtn), 5000, 50);
+      await waitForDom(() => (delBtn = document.querySelector(".more-menu-delete-source-button")) && isVisibleAndEnabled(delBtn), 8000);
       if (!delBtn) throw new Error("Delete button not found");
       delBtn.click();
 
@@ -720,7 +755,13 @@ async function deleteSelectedSources(selectedIds) {
 
       // 確認ボタンを押しただけでは削除の完了は保証されない。
       // 対象の要素が DOM から取り除かれるのを、この処理の完了合図として待つ。
-      await waitFor(() => !src.element.isConnected, 15000, 100);
+      const removed = await waitForDom(() => !src.element.isConnected, 20000);
+      if (!removed) throw new Error("Deletion did not complete");
+
+      // 次の項目へ進む前にダイアログが閉じきるのを待つ。
+      // ここで固定待ちを入れると非表示タブで 1 件ごとに 1 秒失うため、
+      // オーバーレイが消えたことを条件にする。
+      await waitForDom(() => !document.querySelector('mat-dialog-container, .mat-mdc-dialog-container'), 8000);
 
       src.element.dispatchEvent(new Event("mouseleave", { bubbles: true }));
       processed++;
@@ -729,9 +770,10 @@ async function deleteSelectedSources(selectedIds) {
       processed++;
       notify({ id: id, status: "error", error: e.message });
     }
-    // 連続操作で NotebookLM 側の描画が追いつかないことがあるため、
-    // ごく短い間隔だけ空ける
-    await delay(150);
+    // ここでの固定待ちは入れない。非表示タブでは setTimeout が
+    // 1 秒以上に伸びるため、1 件ごとにその分だけ余計に時間がかかる。
+    // 描画の追いつきは上の waitForDom（要素の消滅・ダイアログの閉じ）で
+    // 確認済みなので、そのまま次の項目へ進んでよい。
   }
 }
 
