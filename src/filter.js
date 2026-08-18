@@ -686,6 +686,24 @@ document.addEventListener("DOMContentLoaded", function() {
         delStatus.id = "deletionStatus";
         delContainer.appendChild(delStatus);
       }
+
+      // 中断ボタン。削除は取り消せないため、走り出したあとに止める手段を用意する。
+      let abortBtn = document.getElementById("abortDeletion");
+      if (!abortBtn) {
+        abortBtn = document.createElement("button");
+        abortBtn.id = "abortDeletion";
+        abortBtn.style.marginTop = "8px";
+        delContainer.appendChild(abortBtn);
+      }
+      abortBtn.disabled = false;
+      abortBtn.innerText = i18nMessage("abortDeletionButton");
+      abortBtn.onclick = function () {
+        abortBtn.disabled = true;
+        abortBtn.innerText = i18nMessage("abortDeletionRequested");
+        chrome.runtime.sendMessage({ action: "abortDelete" }, () => {
+          if (chrome.runtime.lastError) { /* 応答が無くても中断要求は届いている */ }
+        });
+      };
       delStatus.innerText = i18nMessage("deletionInProgress") || "削除中...";
 
       // 前回の削除状態が残っていると進捗の合計件数が更新されず、
@@ -722,6 +740,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     // 初期化済みか確認
     if (!delProg || !delStatus || !delContainer) return;
+
+    // 中断された場合はここで打ち切る
+    if (message.status === "aborted") {
+      delStatus.innerText = i18nMessage("deletionAborted")
+        + `（${deletionState.processed}/${deletionState.total}）`;
+      const ab = document.getElementById("abortDeletion");
+      if (ab) ab.remove();
+      setTimeout(() => {
+        reloadSources();
+        delContainer.remove();
+        deletionState = { total: 0, processed: 0, errorCount: 0 };
+      }, 1800);
+      return;
+    }
 
     // 初回に合計件数を保存
     if (deletionState.total === 0 && message.total) {

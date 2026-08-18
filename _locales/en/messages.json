@@ -263,5 +263,14 @@
   },
   "helpRenameTip": {
     "message": "Old titles are matched exactly. Use \"Download CSV\" in delete mode to export the current titles as a starting point."
+  },
+  "abortDeletionButton": {
+    "message": "Stop deleting"
+  },
+  "abortDeletionRequested": {
+    "message": "Stopping..."
+  },
+  "deletionAborted": {
+    "message": "Deletion stopped"
   }
 }
