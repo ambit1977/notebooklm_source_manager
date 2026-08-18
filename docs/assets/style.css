@@ -1,0 +1,77 @@
+:root{
+  --bg:#ffffff; --fg:#1f2933; --muted:#61707d; --line:#e3e8ee;
+  --accent:#2f6fd0; --accent-dark:#1f4f9c; --soft:#f5f8fc;
+  --warn-bg:#fff8e6; --warn-line:#f0c36d; --warn-fg:#6b4e00;
+  --note-bg:#eef4fd; --note-line:#b6cdf3; --note-fg:#274b7d;
+  --danger-bg:#fff4f4; --danger-line:#f2b8b8; --danger-fg:#a3373a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  line-height:1.75;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px}
+
+header.site{background:linear-gradient(160deg,#1f3a5f,#2f5d8e 60%,#3f7cc0);color:#fff;padding:14px 0 46px}
+header.site a{color:#dbe9f8}
+.nav{display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-size:.92rem;padding:6px 0 26px}
+.nav .brand,header.site a.brand{font-weight:700;color:#fff;margin-right:auto}
+.hero h1{font-size:2.05rem;line-height:1.35;margin:0 0 10px;font-weight:800}
+.hero p.lead{font-size:1.05rem;color:#cfe0f2;margin:0 0 22px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);
+  border-radius:999px;padding:4px 13px;font-size:.83rem}
+.cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn,header.site a.btn{display:inline-block;background:#fff;color:#1f3a5f;font-weight:700;
+  padding:12px 22px;border-radius:8px;border:1px solid transparent}
+.btn:hover,header.site a.btn:hover{background:#eef4fd;text-decoration:none}
+.btn.ghost,header.site a.btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.45)}
+.btn.ghost:hover,header.site a.btn.ghost:hover{background:rgba(255,255,255,.12)}
+.cta small{display:block;font-weight:400;font-size:.78rem;opacity:.85;margin-top:3px}
+
+main{padding:44px 0 60px}
+h2{font-size:1.4rem;margin:44px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+h2:first-child{margin-top:0}
+h3{font-size:1.09rem;margin:28px 0 8px}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 16px;padding-left:1.5em}
+li{margin:5px 0}
+code{background:var(--soft);border:1px solid var(--line);border-radius:4px;
+  padding:1px 6px;font-size:.9em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+pre{background:#0f2033;color:#e6edf5;padding:14px 16px;border-radius:8px;overflow-x:auto;margin:0 0 16px}
+pre code{background:none;border:0;color:inherit;padding:0}
+
+.box{border-radius:8px;padding:14px 18px;margin:0 0 18px;border:1px solid}
+.box p:last-child{margin-bottom:0}
+.note{background:var(--note-bg);border-color:var(--note-line);color:var(--note-fg)}
+.warn{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn-fg)}
+.danger{background:var(--danger-bg);border-color:var(--danger-line);color:var(--danger-fg)}
+
+table{border-collapse:collapse;width:100%;margin:0 0 18px;font-size:.94rem}
+th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+th{background:var(--soft);font-weight:700}
+
+.steps{list-style:none;counter-reset:s;padding:0}
+.steps>li{counter-increment:s;position:relative;padding:0 0 18px 46px;margin:0}
+.steps>li::before{content:counter(s);position:absolute;left:0;top:0;width:30px;height:30px;
+  border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.92rem;
+  display:flex;align-items:center;justify-content:center}
+.steps>li strong{display:block;margin-bottom:2px}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:0 0 18px}
+.card{border:1px solid var(--line);border-radius:8px;padding:15px 17px;background:var(--soft)}
+.card h3{margin:0 0 5px;font-size:1rem}
+.card p{margin:0;font-size:.92rem;color:var(--muted)}
+
+.shot{width:100%;border:1px solid var(--line);border-radius:8px;margin:0 0 8px}
+figure{margin:0 0 22px}
+figcaption{font-size:.87rem;color:var(--muted)}
+
+footer.site{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:.88rem}
+footer.site a{color:var(--muted);text-decoration:underline}
+
+@media (max-width:600px){
+  .hero h1{font-size:1.6rem}
+  h2{font-size:1.2rem}
+}

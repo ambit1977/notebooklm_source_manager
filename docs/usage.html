@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>使い方 — NotebookLM ソース一括削除・管理ツール</title>
+<meta name="description" content="一括削除・絞り込み・重複チェック・一括リネーム・YouTube 一括追加の使い方。">
+<link rel="stylesheet" href="assets/style.css?v=2">
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="index.html">NotebookLM ソース一括削除・管理ツール</a>
+      <a href="index.html">紹介</a>
+      <a href="install.html">導入方法</a>
+      <a href="usage.html">使い方</a>
+      <a href="en/index.html">English</a>
+    </nav>
+    <div class="hero">
+      <h1>使い方</h1>
+      <p class="lead">ノートブックを開いて、ツールバーのアイコンを押すところから始まります。</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<h2>基本の流れ</h2>
+
+<ol class="steps">
+  <li><strong>NotebookLM でノートブックを開く</strong>一覧画面ではなく、ノートブックを1つ開いた状態にします。</li>
+  <li><strong>ツールバーの拡張機能アイコンをクリック</strong>別ウィンドウでソースの一覧が開きます。</li>
+  <li><strong>操作する</strong>上部のタブで「削除モード」「一括追加モード」「リネームモード」を切り替えます。</li>
+</ol>
+
+<div class="box note">
+  <p>拡張機能のウィンドウは、アイコンを押したときに開いていたノートブックを対象にし続けます。別のノートブックに切り替えたときは「再読み込み」を押してください。</p>
+</div>
+
+<h2>ソースを一括削除する</h2>
+
+<figure>
+  <img class="shot" src="assets/screenshot-delete.png" alt="ソースを選んで一括削除する画面">
+</figure>
+
+<ol class="steps">
+  <li><strong>消したいソースにチェックを入れる</strong>「全選択／全解除」でまとめて選択できます。</li>
+  <li><strong>「選択したソースを削除」を押す</strong>確認ダイアログが出ます。</li>
+  <li><strong>完了を待つ</strong>進捗が表示されます。途中で止めたいときは「削除を中断」を押してください。</li>
+</ol>
+
+<div class="box danger">
+  <p><strong>削除は取り消せません。</strong> NotebookLM 側に元に戻す機能がないため、実行前に選択内容を必ずご確認ください。心配な場合は、先に「CSVダウンロード」で一覧を控えておくと安心です。</p>
+</div>
+
+<h3>絞り込んでから消す</h3>
+
+<figure>
+  <img class="shot" src="assets/screenshot-filter.png" alt="キーワードと種類で絞り込む画面">
+</figure>
+
+<ul>
+  <li><strong>タイトルでフィルタ</strong>：キーワードを入力すると、一致するソースだけが残ります</li>
+  <li><strong>正規表現</strong>：チェックを入れると、入力欄が正規表現として扱われます</li>
+  <li><strong>ソースの種類</strong>：PDF・ウェブサイト・YouTube・Google ドキュメントなどで絞り込めます</li>
+  <li><strong>表示順</strong>：デフォルト／A→Z／Z→A を切り替えられます</li>
+</ul>
+
+<p>絞り込んだ状態で「全選択／全解除」を押すと、<strong>表示されているソースだけ</strong>が選択されます。「先月取り込んだ YouTube だけ消す」といった操作はこの組み合わせで行えます。</p>
+
+<h3>重複チェック</h3>
+
+<p>「重複チェック」を押すと、同じタイトルのソースだけが表示されます。同じ資料を何度も取り込んでしまったときの整理に使えます。表示された中から、残す1件のチェックを外してから削除してください。</p>
+
+<h3>CSVダウンロード</h3>
+
+<p>現在表示されているソースの一覧を CSV で書き出します。削除前の控えとしても、リネームモードの貼り付け元としても使えます。</p>
+
+<h2>YouTube を一括追加する</h2>
+
+<p>「一括追加モード」タブを開きます。</p>
+
+<ol class="steps">
+  <li><strong>共有リンクを1行に1つずつ貼り付ける</strong>短縮リンク（youtu.be）や再生リストのパラメータが付いた URL も、自動で正規化されます。</li>
+  <li><strong>「YouTube URL を追加」を押す</strong>1件ずつ順番に取り込まれます。本数が多いと時間がかかります。</li>
+</ol>
+
+<div class="box note">
+  <p>ウェブサイトの一括追加は NotebookLM 本体でできるようになったため、このモードは YouTube 専用です。</p>
+</div>
+
+<h2>タイトルを一括リネームする</h2>
+
+<p>「リネームモード」タブを開きます。</p>
+
+<ol class="steps">
+  <li><strong>「変更前のタイトル,変更後のタイトル」を1行に1組ずつ書く</strong>タイトルにカンマが含まれる場合は <code>"..."</code> で囲みます。</li>
+  <li><strong>「一括リネーム」を押す</strong></li>
+</ol>
+
+<p>変更前のタイトルは<strong>完全一致</strong>で照合します。削除モードの「CSVダウンロード」で現在のタイトル一覧を書き出し、それを表計算ソフトで加工して貼り付けると確実です。</p>
+
+<pre><code>2024-01-15 会議メモ,【議事録】2024-01 定例
+"AI, ML の基礎",AI・ML の基礎</code></pre>
+
+<h2>速度について</h2>
+
+<p>削除は NotebookLM の画面を実際に操作して行うため、件数が多いと時間がかかります。また、<strong>NotebookLM のタブが裏に隠れていると Chrome の省電力機能により遅くなります</strong>。急ぐ場合は NotebookLM のタブを見える位置に置いたまま実行してください。</p>
+
+<h2>よくある質問</h2>
+
+<h3>削除したソースは元に戻せますか？</h3>
+<p>戻せません。NotebookLM 側に取り消し機能がないためです。</p>
+
+<h3>ノートブック自体は削除されますか？</h3>
+<p>されません。この拡張機能が操作するのは、開いているノートブック内のソースだけです。</p>
+
+<h3>データはどこかに送信されますか？</h3>
+<p>いいえ。処理はすべてお使いのブラウザ内で完結し、ソースの内容やタイトルを外部に送信することはありません。</p>
+
+<h3>途中で止まってしまいました</h3>
+<p>「削除を中断」を押してから、「再読み込み」で一覧を取り直してください。それでも解消しない場合は、NotebookLM のタブを再読み込みしてからもう一度お試しください。</p>
+
+<h3>動かなくなりました</h3>
+<p>この拡張機能は NotebookLM の画面構造に依存して動作するため、Google 側の変更で一時的に動かなくなることがあります。<a href="https://github.com/ambit1977/notebooklm_source_manager/issues">GitHub の Issues</a> にご報告いただければ対応します。</p>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>NotebookLM ソース一括削除・管理ツール v1.2.43 ／ <a href="https://github.com/ambit1977/notebooklm_source_manager">GitHub</a> ／ <a href="https://github.com/ambit1977/notebooklm_source_manager/issues">不具合の報告</a></p>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>導入方法 — NotebookLM ソース一括削除・管理ツール</title>
+<meta name="description" content="開発版パッケージ（パッケージ化されていない拡張機能）を Chrome に読み込む手順。">
+<link rel="stylesheet" href="assets/style.css?v=2">
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="index.html">NotebookLM ソース一括削除・管理ツール</a>
+      <a href="index.html">紹介</a>
+      <a href="install.html">導入方法</a>
+      <a href="usage.html">使い方</a>
+      <a href="en/index.html">English</a>
+    </nav>
+    <div class="hero">
+      <h1>導入方法</h1>
+      <p class="lead">開発版パッケージを Chrome に読み込む手順です。5分ほどで終わります。</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<h2>どちらを使うか</h2>
+
+<table>
+  <tr><th></th><th>Chrome ウェブストア版</th><th>開発版パッケージ</th></tr>
+  <tr><td>入手</td><td>ストアから1クリック</td><td>ZIP をダウンロードして読み込み</td></tr>
+  <tr><td>更新</td><td>自動</td><td>手動（新しい ZIP に入れ替え）</td></tr>
+  <tr><td>最新の修正</td><td>審査後に反映（数日〜数週間）</td><td>すぐ使える</td></tr>
+  <tr><td>起動時の警告</td><td>なし</td><td>デベロッパーモードの警告が出ることがある</td></tr>
+</table>
+
+<p>急がないなら <a href="https://chromewebstore.google.com/detail/chnggbbijedpjecbpkadjfdgiapgdadp">ウェブストア版</a> をおすすめします。修正をすぐ試したい場合は、以下の手順で開発版をお使いください。</p>
+
+<h2>開発版パッケージの導入手順</h2>
+
+<p><a class="btn" style="background:var(--accent);color:#fff;border:0" href="download/notebooklm-source-manager-latest.zip">ZIP をダウンロード（v1.2.43）</a></p>
+
+<ol class="steps">
+  <li>
+    <strong>ZIP を展開する</strong>
+    ダウンロードした ZIP をダブルクリックすると、<code>notebooklm-source-manager-v1.2.43</code> というフォルダができます。
+  </li>
+  <li>
+    <strong>フォルダを置き場所に移動する</strong>
+    書類フォルダなど、あとから消さない場所に移動してください。
+  </li>
+  <li>
+    <strong>拡張機能ページを開く</strong>
+    Chrome のアドレスバーに <code>chrome://extensions</code> と入力して開きます。
+  </li>
+  <li>
+    <strong>デベロッパーモードをオンにする</strong>
+    画面右上のスイッチをオンにします。オンにすると左上にボタンが3つ表示されます。
+  </li>
+  <li>
+    <strong>フォルダを読み込む</strong>
+    「パッケージ化されていない拡張機能を読み込む」をクリックし、手順2で置いたフォルダを選択します。<br>
+    ※ ZIP ファイルではなく、展開してできた<strong>フォルダ</strong>を選んでください。
+  </li>
+  <li>
+    <strong>ツールバーに固定する</strong>
+    ツールバーのパズルのピースのアイコンをクリックし、この拡張機能のピンをオンにすると、いつでも押せるようになります。
+  </li>
+</ol>
+
+<div class="box danger">
+  <p><strong>読み込んだフォルダは消さないでください。</strong> Chrome はフォルダの中身を毎回読み込むため、フォルダを削除したり移動したりすると拡張機能も動かなくなります。ダウンロードフォルダに置いたままにせず、消さない場所へ移動しておくのが安全です。</p>
+</div>
+
+<div class="box note">
+  <p><strong>ウェブストア版と併用する場合。</strong> どちらも読み込んでいると、ツールバーに同じアイコンが2つ並びます。混乱を避けるため、<code>chrome://extensions</code> でどちらか一方をオフにしておくことをおすすめします。</p>
+</div>
+
+<h2>更新のしかた</h2>
+
+<ol class="steps">
+  <li><strong>新しい ZIP をダウンロードして展開する</strong></li>
+  <li><strong>古いフォルダの中身を差し替える</strong>古いフォルダを削除し、新しいフォルダを同じ場所に置きます。</li>
+  <li><strong>再読み込みする</strong><code>chrome://extensions</code> で、この拡張機能のカードにある更新（⟳）アイコンをクリックします。フォルダ名が変わった場合は、いったん削除してから読み込み直してください。</li>
+</ol>
+
+<h2>困ったときは</h2>
+
+<h3>Chrome の起動時に「デベロッパー モードの拡張機能を無効にする」と出る</h3>
+<p>開発版を読み込んでいると Chrome が毎回出す警告です。そのまま閉じれば拡張機能は動き続けます。この表示が煩わしい場合は、ウェブストア版に切り替えてください。</p>
+
+<h3>拡張機能アイコンを押してもウィンドウが開かない</h3>
+<p><code>chrome://extensions</code> でこの拡張機能がオンになっているか、エラー表示が出ていないかをご確認ください。</p>
+
+<h3>「NotebookLM のタブが見つかりません」と表示される</h3>
+<p>ノートブックの一覧画面ではなく、ノートブックを1つ開いた状態でアイコンをクリックしてください。NotebookLM は <code>notebooklm.google.com</code> と <code>notebook.google.com</code> のどちらかで開きますが、どちらにも対応しています。</p>
+
+<h3>「ページと通信できませんでした」と表示される</h3>
+<p>拡張機能を入れた直後・更新した直後は、その前から開いていたタブとつながらないことがあります。画面に出る「ページを再読み込み」ボタンを押すと復旧します。</p>
+
+<h3>ソースの一覧が空のまま出てこない</h3>
+<p>NotebookLM 側の読み込みが終わる前だと空になることがあります。「再試行」を押してください。それでも出てこない場合は、NotebookLM のタブを再読み込みしてからもう一度お試しください。</p>
+
+<p><a href="usage.html">使い方を見る →</a></p>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>NotebookLM ソース一括削除・管理ツール v1.2.43 ／ <a href="https://github.com/ambit1977/notebooklm_source_manager">GitHub</a> ／ <a href="https://github.com/ambit1977/notebooklm_source_manager/issues">不具合の報告</a></p>
+  </div>
+</footer>
+</body>
+</html>
