@@ -382,7 +382,17 @@
     return expanded;
   }
 
-  // パネル／グループを開いたうえで、描画件数が安定するまで待って件数を返す
+  // パネル／グループを開いたうえで、ソースが描画されるのを待って件数を返す。
+  //
+  // 以前は「件数が2回続けて同じになるまで」を最大12回×200ms のループで
+  // 待っていた。この待機は setTimeout で、NotebookLM のタブは
+  // フィルターウィンドウを見ている間ずっと非表示になるため、
+  // 1回あたり1秒に引き伸ばされて最大12秒かかっていた。
+  // とくにソースが0件のときは必ず全12回を回しきるため、
+  // 削除して空になった直後の一覧更新が毎回12秒待ちになっていた。
+  //
+  // 既に描画済みならそのまま返し、0件のときだけ DOM の変化を待つ。
+  // 本当に空のノートブックでは待っても増えないので短めで切り上げる。
   async function ensureSourcesVisible() {
     try {
       await openSourcePanel();
@@ -390,14 +400,14 @@
     } catch (e) {
       debugLog('ensureSourcesVisible error', e);
     }
-    let last = -1;
-    for (let i = 0; i < 12; i++) {
-      const n = document.querySelectorAll(SOURCE_ITEM_SELECTOR).length;
-      if (n > 0 && n === last) return n;
-      last = n;
-      await delay(200);
-    }
-    return document.querySelectorAll(SOURCE_ITEM_SELECTOR).length;
+    const count = () => document.querySelectorAll(SOURCE_ITEM_SELECTOR).length;
+    // まだ何も描画されていなければ、最初の1件が現れるのを待つ。
+    // 本当に空のノートブックでは増えないので短めで切り上げる。
+    if (count() === 0) await waitForDom(() => count() > 0, 2500);
+    // 数える前に描画が落ち着くのを待つ。これを省くと、削除直後に
+    // 消えたはずの要素を拾って一覧が古いまま固定される。
+    await settleDom(250, 3000);
+    return count();
   }
 
   function findChipByIcon(iconText) {
@@ -500,6 +510,36 @@
       observer.observe(document.documentElement, {
         childList: true, subtree: true, attributes: true
       });
+    });
+  }
+
+  // DOM の変化が収まるまで待つ。
+  //
+  // 削除直後は、消したはずの要素が一瞬だけ残っていることがある。
+  // その瞬間に数えると実際より多い件数を拾ってしまい、一覧が
+  // 古いまま固定されてしまう（削除完了後に消えたはずの項目が残る）。
+  // 変化が quietMs のあいだ途切れたら「落ち着いた」とみなす。
+  //
+  // ここだけは setTimeout を使う。非表示タブでは 1 秒程度に伸びるが、
+  // 1 回きりなので影響は小さい。maxMs で頭打ちにしておく。
+  function settleDom(quietMs, maxMs) {
+    return new Promise(resolve => {
+      let quiet, done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        observer.disconnect();
+        clearTimeout(quiet);
+        clearTimeout(hard);
+        resolve();
+      };
+      const observer = new MutationObserver(() => {
+        clearTimeout(quiet);
+        quiet = setTimeout(finish, quietMs);
+      });
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+      quiet = setTimeout(finish, quietMs);
+      const hard = setTimeout(finish, maxMs || 3000);
     });
   }
 
