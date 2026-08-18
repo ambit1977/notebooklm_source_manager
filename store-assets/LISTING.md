@@ -1,4 +1,4 @@
-# Chrome Web Store 掲載内容（v1.2.39）
+# Chrome Web Store 掲載内容（v1.2.43）
 
 そのままコピー＆ペーストできる形式でまとめています。
 文字数は Chrome Web Store の上限（概要 132 文字／詳細説明 16,000 文字）に収めています。
@@ -60,6 +60,10 @@ YouTube のリンクを1行ずつ貼り付けるだけで、まとめてソー�
 【6. CSV ダウンロード】
 表示中のソース一覧をタイトルと種類つきで書き出せます。
 
+【7. 削除の中断】
+実行中に「削除を中断」を押すと、進行中の1件を終えた時点で安全に停止します。
+全選択して押し間違えたときの保険になります。
+
 
 ■ 使い方
 
@@ -88,7 +92,17 @@ https://github.com/ambit1977/notebooklm_source_manager
 ・本拡張機能は Google LLC の提供物ではなく、公式のものでもありません。
 
 
-■ 更新履歴（v1.2.39）
+■ 更新履歴（v1.2.43）
+
+削除が大幅に速くなりました。1件あたり約3.5秒かかっていた処理を、
+待ち時間をなくして表示中なら約0.15秒にしました。
+他のタブで作業していると極端に遅くなる問題（ブラウザによるタイマー抑制）も
+回避したので、裏で走らせても実用的な速さで進みます。
+
+削除を途中で止められるようにしました。実行中に「削除を中断」ボタンが出ます。
+
+
+■ 過去の更新履歴（v1.2.39）
 
 2026年7月の NotebookLM（Gemini Notebook）の UI 刷新に対応しました。
 
@@ -164,6 +178,10 @@ Paste YouTube links one per line and add them all as sources. Short links
 6. CSV EXPORT
 Export the currently listed sources with their titles and types.
 
+7. STOP A RUNNING DELETION
+Press "Stop deleting" while a bulk delete is running. It finishes the item in
+progress and stops safely — useful if you selected everything by mistake.
+
 
 ■ How to use
 
@@ -192,7 +210,19 @@ https://github.com/ambit1977/notebooklm_source_manager
 ・This extension is not provided by, or affiliated with, Google LLC.
 
 
-■ What's new in v1.2.39
+■ What's new in v1.2.43
+
+Deleting is now much faster. Each source used to take about 3.5 seconds;
+with the waiting removed it now takes roughly 0.15 seconds while the tab is
+visible. The extension no longer relies on timers, which browsers throttle in
+background tabs, so deletion keeps a usable pace even while you work in
+another tab.
+
+You can also stop a running deletion now — a "Stop deleting" button appears
+while the bulk delete is in progress.
+
+
+■ Previous release (v1.2.39)
 
 Updated for the July 2026 NotebookLM (Gemini Notebook) interface redesign.
 
