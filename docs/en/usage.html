@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How to use — NotebookLM Source Bulk Delete &amp; Manager</title>
+<meta name="description" content="Bulk delete, filter, duplicate check, batch rename, and batch YouTube adding.">
+<link rel="alternate" hreflang="ja" href="../usage.html">
+<link rel="stylesheet" href="../assets/style.css?v=2">
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="index.html">NotebookLM Source Bulk Delete &amp; Manager</a>
+      <a href="index.html">Overview</a>
+      <a href="install.html">Install</a>
+      <a href="usage.html">How to use</a>
+      <a href="../usage.html">日本語</a>
+    </nav>
+    <div class="hero">
+      <h1>How to use</h1>
+      <p class="lead">Open a notebook, click the toolbar icon, and go from there.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<h2>The basic flow</h2>
+
+<ol class="steps">
+  <li><strong>Open a notebook in NotebookLM</strong>Open an actual notebook, not the notebook list.</li>
+  <li><strong>Click the extension icon in the toolbar</strong>A separate window opens with your source list.</li>
+  <li><strong>Pick a mode</strong>Switch between Delete, Batch add, and Rename with the tabs at the top.</li>
+</ol>
+
+<div class="box note">
+  <p>The extension window stays bound to whichever notebook was open when you clicked the icon. After switching to a different notebook, click <strong>Reload</strong> to pick up its sources.</p>
+</div>
+
+<h2>Bulk deleting sources</h2>
+
+<figure>
+  <img class="shot" src="../assets/screenshot-delete-en.png" alt="Selecting sources for bulk deletion">
+</figure>
+
+<ol class="steps">
+  <li><strong>Tick the sources you want to remove</strong>Use <strong>Select all / Deselect all</strong> to grab everything at once.</li>
+  <li><strong>Click "Delete selected sources"</strong>A confirmation dialog appears.</li>
+  <li><strong>Wait for it to finish</strong>Progress is shown as it runs. Click <strong>Abort deletion</strong> to stop partway through.</li>
+</ol>
+
+<div class="box danger">
+  <p><strong>Deletion cannot be undone.</strong> NotebookLM offers no undo for removed sources, so check your selection before running. If you want a safety net, export the list with <strong>Download CSV</strong> first.</p>
+</div>
+
+<h3>Filter first, then delete</h3>
+
+<figure>
+  <img class="shot" src="../assets/screenshot-filter-en.png" alt="Filtering by keyword and source type">
+</figure>
+
+<ul>
+  <li><strong>Filter by title</strong> — type a keyword and only matching sources remain</li>
+  <li><strong>Regex</strong> — tick this and your input is treated as a regular expression</li>
+  <li><strong>Source type</strong> — narrow to PDF, website, YouTube, Google Docs, and so on</li>
+  <li><strong>Sort order</strong> — default, A→Z, or Z→A</li>
+</ul>
+
+<p>Select-all applies to <strong>what is currently visible</strong>. Filter down first, then select all, and you can clear out something specific — "every YouTube video I added last month", for example — without touching anything else.</p>
+
+<h3>Duplicate check</h3>
+
+<p><strong>Duplicate check</strong> shows only sources that share a title with another one. It is the quickest way to clean up material you imported more than once. Untick the one copy you want to keep, then delete the rest.</p>
+
+<h3>Download CSV</h3>
+
+<p>Exports the currently visible sources as a CSV file. Useful both as a record before deleting and as the starting point for Rename mode.</p>
+
+<h2>Batch adding YouTube videos</h2>
+
+<p>Open the <strong>Batch add</strong> tab.</p>
+
+<ol class="steps">
+  <li><strong>Paste share links, one per line</strong>Short <code>youtu.be</code> links and URLs carrying playlist parameters are normalized automatically.</li>
+  <li><strong>Click "Add YouTube URLs"</strong>They are imported one at a time, so a long list takes a while.</li>
+</ol>
+
+<div class="box note">
+  <p>This mode is YouTube-only. Bulk-adding websites was removed because NotebookLM now supports it natively.</p>
+</div>
+
+<h2>Batch renaming titles</h2>
+
+<p>Open the <strong>Rename</strong> tab.</p>
+
+<ol class="steps">
+  <li><strong>Write one <code>old title,new title</code> pair per line</strong>Wrap a title in double quotes if it contains a comma.</li>
+  <li><strong>Click "Batch rename"</strong></li>
+</ol>
+
+<p>Old titles are matched <strong>exactly</strong>. The reliable approach is to export the current titles with <strong>Download CSV</strong>, edit that in a spreadsheet, and paste the result back in.</p>
+
+<pre><code>2024-01-15 meeting notes,[Minutes] 2024-01 standup
+"AI, ML basics",AI and ML basics</code></pre>
+
+<h2>About speed</h2>
+
+<p>Deletion drives the actual NotebookLM interface, so large batches take time. Chrome also throttles timers in background tabs, which slows things down further. If you are in a hurry, leave the NotebookLM tab visible while it runs.</p>
+
+<h2>FAQ</h2>
+
+<h3>Can I recover a deleted source?</h3>
+<p>No. NotebookLM does not provide an undo for removed sources.</p>
+
+<h3>Does it delete the notebook itself?</h3>
+<p>No. The extension only touches the sources inside the notebook you have open.</p>
+
+<h3>Is any of my data sent somewhere?</h3>
+<p>No. Everything runs locally in your browser, and source titles and contents are never transmitted.</p>
+
+<h3>It got stuck partway through</h3>
+<p>Click <strong>Abort deletion</strong>, then <strong>Reload</strong> to fetch the list again. If it still misbehaves, reload the NotebookLM tab and retry.</p>
+
+<h3>It stopped working entirely</h3>
+<p>This extension depends on the structure of the NotebookLM page, so changes on Google's side can temporarily break it. Please report it on <a href="https://github.com/ambit1977/notebooklm_source_manager/issues">GitHub Issues</a> and it will be fixed.</p>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>NotebookLM Source Bulk Delete &amp; Manager v1.2.43 · <a href="https://github.com/ambit1977/notebooklm_source_manager">GitHub</a> · <a href="https://github.com/ambit1977/notebooklm_source_manager/issues">Report a problem</a></p>
+  </div>
+</footer>
+</body>
+</html>

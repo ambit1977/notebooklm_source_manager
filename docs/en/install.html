@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Install — NotebookLM Source Bulk Delete &amp; Manager</title>
+<meta name="description" content="How to load the developer build (unpacked extension) into Chrome.">
+<link rel="alternate" hreflang="ja" href="../install.html">
+<link rel="stylesheet" href="../assets/style.css?v=2">
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="index.html">NotebookLM Source Bulk Delete &amp; Manager</a>
+      <a href="index.html">Overview</a>
+      <a href="install.html">Install</a>
+      <a href="usage.html">How to use</a>
+      <a href="../install.html">日本語</a>
+    </nav>
+    <div class="hero">
+      <h1>Installation</h1>
+      <p class="lead">How to load the developer build into Chrome. It takes about five minutes.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<h2>Which one should you use?</h2>
+
+<table>
+  <tr><th></th><th>Chrome Web Store</th><th>Developer build</th></tr>
+  <tr><td>Getting it</td><td>One click from the store</td><td>Download a ZIP and load it</td></tr>
+  <tr><td>Updates</td><td>Automatic</td><td>Manual — swap in the new ZIP</td></tr>
+  <tr><td>Latest fixes</td><td>After review (days to weeks)</td><td>Available immediately</td></tr>
+  <tr><td>Startup warning</td><td>None</td><td>Chrome may warn about developer mode</td></tr>
+</table>
+
+<p>If you are not in a hurry, the <a href="https://chromewebstore.google.com/detail/chnggbbijedpjecbpkadjfdgiapgdadp">Web Store version</a> is the easier choice. Use the steps below when you want a fix that is still in review.</p>
+
+<h2>Installing the developer build</h2>
+
+<p><a class="btn" style="background:var(--accent);color:#fff;border:0" href="../download/notebooklm-source-manager-latest.zip">Download the ZIP (v1.2.43)</a></p>
+
+<ol class="steps">
+  <li>
+    <strong>Unzip the file</strong>
+    Double-click the downloaded ZIP. You will get a folder named <code>notebooklm-source-manager-v1.2.43</code>.
+  </li>
+  <li>
+    <strong>Move the folder somewhere permanent</strong>
+    Your Documents folder is a good spot — anywhere you will not delete later.
+  </li>
+  <li>
+    <strong>Open the extensions page</strong>
+    Type <code>chrome://extensions</code> into the address bar and press Enter.
+  </li>
+  <li>
+    <strong>Turn on Developer mode</strong>
+    The toggle is at the top right. Three buttons appear at the top left once it is on.
+  </li>
+  <li>
+    <strong>Load the folder</strong>
+    Click <strong>Load unpacked</strong> and select the folder from step 2.<br>
+    Select the unzipped <strong>folder</strong>, not the ZIP file itself.
+  </li>
+  <li>
+    <strong>Pin it to the toolbar</strong>
+    Click the puzzle-piece icon in the toolbar and pin this extension so it is always one click away.
+  </li>
+</ol>
+
+<div class="box danger">
+  <p><strong>Do not delete the folder you loaded.</strong> Chrome reads its contents every time it starts, so deleting or moving the folder breaks the extension. Move it out of your Downloads folder to somewhere you will keep it.</p>
+</div>
+
+<div class="box note">
+  <p><strong>Running it alongside the Web Store version.</strong> With both loaded you will see two identical icons in your toolbar. To avoid confusion, turn one of them off in <code>chrome://extensions</code>.</p>
+</div>
+
+<h2>Updating</h2>
+
+<ol class="steps">
+  <li><strong>Download and unzip the new ZIP</strong></li>
+  <li><strong>Replace the old folder</strong>Delete the old folder and put the new one in the same place.</li>
+  <li><strong>Reload the extension</strong>Click the reload (⟳) icon on the extension's card in <code>chrome://extensions</code>. If the folder name changed, remove the extension and load it again.</li>
+</ol>
+
+<h2>Troubleshooting</h2>
+
+<h3>Chrome warns about "Disable developer mode extensions" at startup</h3>
+<p>Chrome shows this every time you have an unpacked extension loaded. Dismiss it and the extension keeps working. Switch to the Web Store version if the prompt bothers you.</p>
+
+<h3>Clicking the icon does not open a window</h3>
+<p>Check <code>chrome://extensions</code> to confirm the extension is enabled and that no error is shown on its card.</p>
+
+<h3>"No NotebookLM tab found"</h3>
+<p>Open an actual notebook — not the notebook list — before clicking the icon. Depending on your account, NotebookLM (officially Gemini Notebook) opens on either <code>notebooklm.google.com</code> or <code>notebook.google.com</code>; both are supported.</p>
+
+<h3>"Could not communicate with the page"</h3>
+<p>Right after installing or updating, the extension cannot reach tabs that were already open. Click <strong>Reload page</strong> in the message to recover.</p>
+
+<h3>The source list comes up empty</h3>
+<p>The list can come back empty if NotebookLM has not finished loading. Click <strong>Retry</strong>. If that does not help, reload the NotebookLM tab and try again.</p>
+
+<p><a href="usage.html">How to use it →</a></p>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>NotebookLM Source Bulk Delete &amp; Manager v1.2.43 · <a href="https://github.com/ambit1977/notebooklm_source_manager">GitHub</a> · <a href="https://github.com/ambit1977/notebooklm_source_manager/issues">Report a problem</a></p>
+  </div>
+</footer>
+</body>
+</html>

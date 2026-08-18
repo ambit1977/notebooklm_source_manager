@@ -4,20 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NotebookLM Source Bulk Delete &amp; Manager</title>
-<meta name="description" content="A Chrome extension to bulk-delete and manage NotebookLM sources. Download the latest developer build here.">
+<meta name="description" content="A Chrome extension that bulk-deletes and manages sources in NotebookLM (Gemini Notebook). Download the latest developer build here.">
+<link rel="alternate" hreflang="ja" href="../index.html">
 <link rel="stylesheet" href="../assets/style.css?v=2">
 </head>
 <body>
 <header class="site">
   <div class="wrap">
     <nav class="nav">
-      <span class="brand">NotebookLM Source Bulk Delete &amp; Manager</span>
-      <a href="index.html">English</a>
+      <a class="brand" href="index.html">NotebookLM Source Bulk Delete &amp; Manager</a>
+      <a href="index.html">Overview</a>
+      <a href="install.html">Install</a>
+      <a href="usage.html">How to use</a>
       <a href="../index.html">日本語</a>
     </nav>
     <div class="hero">
-      <h1>Stop deleting NotebookLM<br>sources one at a time.</h1>
-      <p class="lead">Tick the boxes, click once. Bulk delete, filter, and batch rename your sources.</p>
+      <h1>Stop deleting sources<br>one at a time.</h1>
+      <p class="lead">Tick the boxes, click once. Bulk delete, filter, and batch rename the sources in your notebook.</p>
       <div class="badges">
         <span class="badge">Latest v1.2.43</span>
         <span class="badge">English / 日本語</span>
@@ -25,11 +28,11 @@
       </div>
       <div class="cta">
         <a class="btn" href="../download/notebooklm-source-manager-latest.zip">
-          Download latest build
+          Download the latest build
           <small>ZIP · ~46KB · v1.2.43</small>
         </a>
         <a class="btn ghost" href="https://chromewebstore.google.com/detail/chnggbbijedpjecbpkadjfdgiapgdadp">
-          Chrome Web Store
+          Chrome Web Store version
           <small>Published after review</small>
         </a>
       </div>
@@ -40,7 +43,11 @@
 <main class="wrap">
 
 <div class="box note">
-  <p><strong>About the developer build.</strong> Every Web Store update goes through Google's review, which can take days or weeks. If you want a fix right now, use the build on this page — it is the same code that was submitted to the store.</p>
+  <p><strong>About the developer build.</strong> Every Web Store update goes through Google's review, which can take anywhere from a few days to a few weeks. If you want a fix right now, use the build on this page — it is the same code that was submitted to the store.</p>
+</div>
+
+<div class="box note">
+  <p><strong>A note on the name.</strong> Google's official name for the product is <strong>Gemini Notebook</strong>. Most people still call it NotebookLM, so these pages use "NotebookLM" throughout — the two refer to the same product. The extension works on both <code>notebooklm.google.com</code> and <code>notebook.google.com</code>, since which domain you get depends on your account.</p>
 </div>
 
 <h2>What it does</h2>
@@ -48,15 +55,15 @@
 <div class="cards">
   <div class="card">
     <h3>Bulk delete</h3>
-    <p>Select sources with checkboxes and delete them in one go. Select-all included.</p>
+    <p>Select sources with checkboxes and delete them in one go. Select-all is included.</p>
   </div>
   <div class="card">
-    <h3>Filter first</h3>
+    <h3>Filter first, then delete</h3>
     <p>Narrow by keyword (regex supported) or by type — PDF, website, YouTube, and more.</p>
   </div>
   <div class="card">
     <h3>Abort mid-run</h3>
-    <p>Stop a deletion while it is running, in case you picked the wrong set.</p>
+    <p>Stop a deletion while it is running. Your safety net if you picked the wrong set.</p>
   </div>
   <div class="card">
     <h3>Duplicate check</h3>
@@ -64,7 +71,7 @@
   </div>
   <div class="card">
     <h3>Batch rename</h3>
-    <p>Paste <code>old title,new title</code> lines and rename everything at once.</p>
+    <p>Write <code>old title,new title</code> one pair per line and rename everything at once.</p>
   </div>
   <div class="card">
     <h3>Batch add YouTube</h3>
@@ -73,53 +80,19 @@
 </div>
 
 <figure>
-  <img class="shot" src="../assets/screenshot-delete.png" alt="Selecting sources for bulk deletion">
+  <img class="shot" src="../assets/screenshot-delete-en.png" alt="Selecting sources for bulk deletion">
+  <figcaption>Tick the boxes and click "Delete selected sources". That's it.</figcaption>
 </figure>
 
-<h2>Installing the developer build</h2>
+<h2>Get started in 3 steps</h2>
 
 <ol class="steps">
-  <li><strong>Download and unzip</strong>You will get a folder named <code>notebooklm-source-manager-v1.2.43</code>.</li>
-  <li><strong>Move the folder somewhere permanent</strong>Chrome reads this folder every time it starts, so do not leave it in Downloads and do not delete it later.</li>
-  <li><strong>Open <code>chrome://extensions</code></strong>Type it into the address bar.</li>
-  <li><strong>Turn on Developer mode</strong>The toggle is at the top right.</li>
-  <li><strong>Click "Load unpacked"</strong>Select the folder you unzipped — the folder, not the ZIP file.</li>
-  <li><strong>Pin it to the toolbar</strong>Click the puzzle-piece icon and pin this extension.</li>
+  <li><strong>Download and unzip</strong>Use the button above, then unzip the file.</li>
+  <li><strong>Load it into Chrome</strong>Open <code>chrome://extensions</code>, turn on Developer mode, and load the unzipped folder.</li>
+  <li><strong>Use it in your notebook</strong>Open a notebook, then click the extension icon in the toolbar.</li>
 </ol>
 
-<div class="box warn">
-  <p>Chrome may show a "Disable developer mode extensions" warning on startup. You can dismiss it; the extension keeps working. Use the Web Store version if you would rather not see it.</p>
-</div>
-
-<h3>Updating</h3>
-<p>Download the new ZIP, replace the old folder with the new one in the same location, then click the reload (⟳) icon on the extension's card in <code>chrome://extensions</code>. If the folder name changed, remove the extension and load it again.</p>
-
-<h2>How to use it</h2>
-
-<ol class="steps">
-  <li><strong>Open a notebook in NotebookLM</strong>Open an actual notebook, not the notebook list.</li>
-  <li><strong>Click the extension icon</strong>A separate window opens with your source list.</li>
-  <li><strong>Pick a mode</strong>Delete, batch add, or rename — switch with the tabs at the top.</li>
-</ol>
-
-<h3>Deleting</h3>
-<p>Tick the sources you want gone and click <strong>Delete selected sources</strong>. Use the title filter, the regex option, or the source-type dropdown first, then hit select-all — only the currently visible sources are selected. Click <strong>Abort deletion</strong> to stop a run in progress.</p>
-
-<div class="box danger">
-  <p><strong>Deletion cannot be undone.</strong> NotebookLM has no undo for removed sources, so check your selection before you run it. Use <strong>Download CSV</strong> first if you want a record of what was there.</p>
-</div>
-
-<h3>Batch rename</h3>
-<p>One pair per line, <code>old title,new title</code>. Wrap a title in double quotes if it contains a comma. Old titles are matched exactly — export the current list with <strong>Download CSV</strong> and edit that to be safe.</p>
-
-<pre><code>2024-01-15 meeting notes,[Minutes] 2024-01 standup
-"AI, ML basics",AI and ML basics</code></pre>
-
-<h3>Batch adding YouTube</h3>
-<p>Paste share links one per line and click <strong>Add YouTube URLs</strong>. Short <code>youtu.be</code> links and playlist parameters are normalized automatically. Website bulk-add was removed because NotebookLM now offers it natively.</p>
-
-<h3>A note on speed</h3>
-<p>Deletion drives the actual NotebookLM UI, so large batches take time. Chrome also throttles background tabs, so keep the NotebookLM tab visible if you want it to run at full speed.</p>
+<p><a href="install.html">Full installation guide →</a>　<a href="usage.html">How to use it →</a></p>
 
 <h2>Privacy</h2>
 
@@ -127,10 +100,18 @@
   <li>Everything runs locally in your browser</li>
   <li>Source titles and contents are never sent anywhere</li>
   <li>The extension only accesses NotebookLM pages</li>
-  <li>It never touches your account credentials</li>
+  <li>It never touches your account credentials or passwords</li>
 </ul>
 
-<p>Source code is on <a href="https://github.com/ambit1977/notebooklm_source_manager">GitHub</a>. Please report problems in <a href="https://github.com/ambit1977/notebooklm_source_manager/issues">Issues</a> — this extension depends on NotebookLM's page structure, so Google's changes can temporarily break it.</p>
+<p>The source code is public on <a href="https://github.com/ambit1977/notebooklm_source_manager">GitHub</a>.</p>
+
+<div class="box danger">
+  <p><strong>Deletion cannot be undone.</strong> NotebookLM has no undo for removed sources, so please check your selection before you run it. Exporting the list with "Download CSV" first gives you a record to fall back on.</p>
+</div>
+
+<h2>Reporting problems</h2>
+
+<p>This extension works by driving the NotebookLM interface directly, so changes on Google's side can temporarily break it. If something stops working, please open an issue on <a href="https://github.com/ambit1977/notebooklm_source_manager/issues">GitHub</a> — reports with a screenshot of the browser console are especially helpful.</p>
 
 <p>This extension is not provided by, affiliated with, or endorsed by Google LLC.</p>
 
