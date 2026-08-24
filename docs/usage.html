@@ -78,6 +78,21 @@
 
 <p>現在表示されているソースの一覧を CSV で書き出します。削除前の控えとしても、リネームモードの貼り付け元としても使えます。</p>
 
+<p>ボタンの横の<strong>「ソース情報も含める」</strong>にチェックを入れると、NotebookLM が持っている詳細情報も一緒に書き出せます。</p>
+
+<ul>
+  <li>URL（ウェブページ・URL から取り込んだ PDF）</li>
+  <li>YouTube の動画IDとチャンネル名、再生時間</li>
+  <li>Google ドライブのファイルID</li>
+  <li>語数・ファイルサイズ・追加日時</li>
+</ul>
+
+<p>種別も、アイコンからの推測ではなく NotebookLM 側の情報から判定します。Markdown・PDF・ウェブページ・Google ドキュメントが正確に区別されます。</p>
+
+<div class="box note">
+  <p>この情報は NotebookLM の内部データから取得しています。Google 側の変更で取得できなくなった場合は、CSV を出さずにエラーを表示します。チェックを外せば、これまでどおりタイトルと種別だけの CSV は保存できます。</p>
+</div>
+
 <h2>YouTube を一括追加する</h2>
 
 <p>「一括追加モード」タブを開きます。</p>
@@ -130,7 +145,7 @@
 
 <footer class="site">
   <div class="wrap">
-    <p>NotebookLM ソース一括削除・管理ツール v1.2.43 ／ <a href="https://github.com/ambit1977/notebooklm_source_manager">GitHub</a> ／ <a href="https://github.com/ambit1977/notebooklm_source_manager/issues">不具合の報告</a></p>
+    <p>NotebookLM ソース一括削除・管理ツール v1.2.44 ／ <a href="https://github.com/ambit1977/notebooklm_source_manager">GitHub</a> ／ <a href="https://github.com/ambit1977/notebooklm_source_manager/issues">不具合の報告</a></p>
   </div>
 </footer>
 </body>

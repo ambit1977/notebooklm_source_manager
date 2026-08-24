@@ -78,6 +78,21 @@
 
 <p>Exports the currently visible sources as a CSV file. Useful both as a record before deleting and as the starting point for Rename mode.</p>
 
+<p>Tick <strong>Include source details</strong> next to the button to export the extra information NotebookLM holds for each source:</p>
+
+<ul>
+  <li>URL (web pages, and PDFs imported from a URL)</li>
+  <li>YouTube video ID, channel name and video length</li>
+  <li>Google Drive file ID</li>
+  <li>Word count, file size and the date it was added</li>
+</ul>
+
+<p>Source types come from NotebookLM itself rather than being guessed from icons, so Markdown files, PDFs, web pages and Google Docs are identified correctly.</p>
+
+<div class="box note">
+  <p>This information is read from NotebookLM's internal data. If changes on Google's side break that, the extension shows an error rather than exporting a half-empty file. Clear the checkbox to save the usual title-and-type CSV instead.</p>
+</div>
+
 <h2>Batch adding YouTube videos</h2>
 
 <p>Open the <strong>Batch add</strong> tab.</p>
@@ -130,7 +145,7 @@
 
 <footer class="site">
   <div class="wrap">
-    <p>NotebookLM Source Bulk Delete &amp; Manager v1.2.43 · <a href="https://github.com/ambit1977/notebooklm_source_manager">GitHub</a> · <a href="https://github.com/ambit1977/notebooklm_source_manager/issues">Report a problem</a></p>
+    <p>NotebookLM Source Bulk Delete &amp; Manager v1.2.44 · <a href="https://github.com/ambit1977/notebooklm_source_manager">GitHub</a> · <a href="https://github.com/ambit1977/notebooklm_source_manager/issues">Report a problem</a></p>
   </div>
 </footer>
 </body>
