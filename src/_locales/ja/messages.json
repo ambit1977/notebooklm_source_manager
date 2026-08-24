@@ -272,5 +272,41 @@
   },
   "deletionAborted": {
     "message": "削除を中断しました"
+  },
+  "csvIncludeDetails": {
+    "message": "ソース情報も含める"
+  },
+  "csvIncludeDetailsTip": {
+    "message": "NotebookLM が持っている URL・YouTube 動画ID・Google ドライブのファイルID・語数などを CSV に追加します"
+  },
+  "csvDetailErrorTitle": {
+    "message": "ソース情報を取得できませんでした"
+  },
+  "csvDetailErrorBody": {
+    "message": "NotebookLM 側の仕様変更で取得できなくなった可能性があります。チェックを外せば、これまでどおりタイトルと種別だけの CSV は保存できます。"
+  },
+  "srcTypeGoogleDoc": {
+    "message": "Google ドキュメント"
+  },
+  "srcTypeGoogleSlides": {
+    "message": "Google スライド"
+  },
+  "srcTypePdf": {
+    "message": "PDF"
+  },
+  "srcTypePdfUploaded": {
+    "message": "PDF（アップロード）"
+  },
+  "srcTypeText": {
+    "message": "テキスト"
+  },
+  "srcTypeWebPage": {
+    "message": "ウェブページ"
+  },
+  "srcTypeMarkdown": {
+    "message": "Markdown"
+  },
+  "srcTypeYoutube": {
+    "message": "YouTube"
   }
 }

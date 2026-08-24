@@ -397,29 +397,149 @@ document.addEventListener("DOMContentLoaded", function() {
   csvBtn.id = "downloadCsvBtn";
   csvBtn.innerText = i18nMessage("downloadCsvButton") || "Download CSV";
   csvBtn.style.marginLeft = "10px";
-  csvBtn.addEventListener("click", () => downloadCsv());
+  csvBtn.addEventListener("click", () => downloadCsv(csvBtn));
+
+  // 「ソース情報も含める」チェックボックス。
+  // ON にすると NotebookLM が持っている URL・YouTube 動画ID・
+  // Google Drive ファイルID・語数などを CSV に載せる。
+  let csvDetailWrap = document.createElement("label");
+  csvDetailWrap.id = "csvDetailWrap";
+  csvDetailWrap.className = "csv-detail-toggle";
+  let csvDetailChk = document.createElement("input");
+  csvDetailChk.type = "checkbox";
+  csvDetailChk.id = "csvIncludeDetails";
+  let csvDetailText = document.createElement("span");
+  csvDetailText.innerText = i18nMessage("csvIncludeDetails") || "Include source details";
+  csvDetailWrap.appendChild(csvDetailChk);
+  csvDetailWrap.appendChild(csvDetailText);
+  csvDetailWrap.title = i18nMessage("csvIncludeDetailsTip") || "";
+
+  // 選択状態を次回に持ち越す
+  try {
+    csvDetailChk.checked = localStorage.getItem("csvIncludeDetails") === "1";
+  } catch (e) { /* localStorage 不可でも動作は続ける */ }
+  csvDetailChk.addEventListener("change", () => {
+    try {
+      localStorage.setItem("csvIncludeDetails", csvDetailChk.checked ? "1" : "0");
+    } catch (e) { /* 同上 */ }
+  });
+
   let delSelBtn = document.getElementById("deleteSelected");
   if (delSelBtn) {
     delSelBtn.insertAdjacentElement("afterend", csvBtn);
+    csvBtn.insertAdjacentElement("afterend", csvDetailWrap);
   }
-  function downloadCsv() {
-    let lines = [];
-    lines.push(["Title", "Type"].join(","));
-    for (let s of filteredSources) {
-      let row = [`"${s.title.replace(/"/g, '""')}"`, `"${s.type.replace(/"/g, '""')}"`];
-      lines.push(row.join(","));
-    }
-    let csvContent = lines.join("\n");
-    let blob = new Blob([csvContent], { type: "text/csv" });
-    let url = URL.createObjectURL(blob);
 
-    let a = document.createElement("a");
+  // サーバー側の種別コード → 表示ラベル
+  const SERVER_TYPE_MESSAGE_KEYS = {
+    1: "srcTypeGoogleDoc",
+    2: "srcTypeGoogleSlides",
+    3: "srcTypePdf",
+    4: "srcTypeText",
+    5: "srcTypeWebPage",
+    8: "srcTypeMarkdown",
+    9: "srcTypeYoutube"
+  };
+  function serverTypeLabel(code) {
+    // コードなしはアップロードされた PDF
+    if (code === null || code === undefined) return i18nMessage("srcTypePdfUploaded");
+    const key = SERVER_TYPE_MESSAGE_KEYS[code];
+    return key ? i18nMessage(key) : "code:" + code;
+  }
+
+  function csvCell(v) {
+    if (v === null || v === undefined) return '""';
+    return '"' + String(v).replace(/"/g, '""') + '"';
+  }
+
+  const CSV_DETAIL_HEADERS = [
+    "Title", "Type", "URL", "YouTubeVideoId", "YouTubeChannel", "DriveFileId",
+    "WordCount", "Bytes", "DurationSec", "AddedAt", "IngestedAt",
+    "MimeType", "InternalFlag", "SourceId"
+  ];
+
+  function requestSourceDetails() {
+    return new Promise(resolve => {
+      chrome.runtime.sendMessage({ action: "getSourceDetails" }, resp => {
+        if (chrome.runtime.lastError) {
+          resolve({ error: chrome.runtime.lastError.message || "SCRIPT_UNAVAILABLE" });
+          return;
+        }
+        resolve(resp || { error: "NO_RESPONSE" });
+      });
+    });
+  }
+
+  function saveCsv(lines) {
+    // 先頭に BOM を付ける。付けないと Excel が UTF-8 と判定できず、
+    // 日本語タイトルが文字化けする。
+    const blob = new Blob(["\ufeff" + lines.join("\r\n")],
+                          { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
     a.href = url;
     a.download = "filtered_sources.csv";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  async function downloadCsv(btn) {
+    // チェックなし = 従来どおりタイトルと種別だけ
+    if (!csvDetailChk.checked) {
+      const lines = [["Title", "Type"].map(csvCell).join(",")];
+      for (const s of filteredSources) {
+        lines.push([s.title, s.type].map(csvCell).join(","));
+      }
+      saveCsv(lines);
+      return;
+    }
+
+    if (btn) { btn.disabled = true; }
+    let resp;
+    try {
+      resp = await requestSourceDetails();
+    } finally {
+      if (btn) { btn.disabled = false; }
+    }
+
+    // 取得できなければ CSV を出さずに中断する。
+    // 中途半端に空欄だらけの CSV を渡すと、値が無いのか取得に失敗したのか
+    // 区別できないため。
+    if (!resp || resp.error || !resp.details) {
+      const code = (resp && resp.error) || "UNKNOWN";
+      showBanner("warn",
+        i18nMessage("csvDetailErrorTitle"),
+        i18nMessage("csvDetailErrorBody") + "（" + code + "）",
+        [{ label: i18nMessage("bannerRetry"), onClick: () => { hideBanner(); downloadCsv(btn); } }]);
+      return;
+    }
+    hideBanner();
+
+    const details = resp.details;
+    const lines = [CSV_DETAIL_HEADERS.map(csvCell).join(",")];
+    for (const s of filteredSources) {
+      const d = (s.notebookSourceId && details[s.notebookSourceId]) || null;
+      // サーバー側に該当が無い場合のみ、DOM から推定した種別で埋める
+      lines.push([
+        s.title,
+        d ? serverTypeLabel(d.typeCode) : s.type,
+        d && d.url,
+        d && d.youtubeVideoId,
+        d && d.youtubeChannel,
+        d && d.driveFileId,
+        d && d.wordCount,
+        d && d.bytes,
+        d && d.durationSec,
+        d && d.addedAt,
+        d && d.ingestedAt,
+        d && d.mimeType,
+        d && d.internalFlag,
+        s.notebookSourceId
+      ].map(csvCell).join(","));
+    }
+    saveCsv(lines);
   }
 
   /////////////////////////////////////////////////////////////

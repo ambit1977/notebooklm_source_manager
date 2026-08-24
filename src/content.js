@@ -308,8 +308,22 @@
       }
 
       const origin = inferSourceOrigin(item);
+      // NotebookLM 側のソースID。「その他」ボタンの id 属性に
+      // source-item-more-button-<UUID> の形で埋まっており、
+      // 内部 RPC が返す ID と同一。タイトル照合と違い重複しないため、
+      // サーバー側の詳細情報と正確に突き合わせられる。
+      const idHolder =
+        (deleteButton && typeof deleteButton.id === 'string' &&
+         deleteButton.id.indexOf(SOURCE_ID_ATTR_PREFIX) === 0)
+          ? deleteButton
+          : item.querySelector('[id^="' + SOURCE_ID_ATTR_PREFIX + '"]');
+      const notebookSourceId = idHolder
+        ? idHolder.id.slice(SOURCE_ID_ATTR_PREFIX.length)
+        : null;
+
       sources.push({
         id: item.dataset.sourceId,
+        notebookSourceId: notebookSourceId,
         title: title,
         deleteButton: deleteButton,
         element: item,
@@ -863,6 +877,142 @@ async function deleteSelectedSources(selectedIds) {
     return results;
   }
 
+  /////////////////////////////////////////////////////////////
+  // サーバーが持っているソース情報の取得
+  //
+  // NotebookLM（Gemini Notebook）は内部 RPC で、ソースの URL・YouTube 動画ID・
+  // Google Drive ファイルID・語数などをフロントへ配信している。DOM 側には
+  // これらが一切出ていないため、これまで種別はアイコン名と拡張子からの
+  // 推測に頼っていた（Google ドライブ由来の Markdown が Markdown と判定
+  // されなかったのはこのため）。ここで取れれば推測が不要になる。
+  //
+  // 非公開 API のため rpcid・フィールド位置・ビルド番号は予告なく変わりうる。
+  // 呼び出し側は必ず失敗を扱うこと。
+  const SOURCE_ID_ATTR_PREFIX = 'source-item-more-button-';
+  const SOURCE_DETAIL_RPC = 'rLM1Ne';
+
+  // ページに埋め込まれた WIZ_global_data から値を拾う。
+  // innerHTML 経由なので content script（isolated world）からでも読める。
+  function readWizToken(name) {
+    try {
+      const m = document.documentElement.innerHTML
+        .match(new RegExp('"' + name + '":"([^"]+)"'));
+      return m ? m[1] : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // batchexecute のレスポンスは )]}' の後に「バイト長の行 + JSON の行」が続く形式
+  function parseBatchExecute(text, rpcId) {
+    const lines = text.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (!/^\d+$/.test(lines[i].trim())) continue;
+      let arr;
+      try {
+        arr = JSON.parse(lines[i + 1]);
+      } catch (e) {
+        continue;
+      }
+      if (!Array.isArray(arr)) continue;
+      for (const entry of arr) {
+        if (Array.isArray(entry) && entry[0] === 'wrb.fr' &&
+            entry[1] === rpcId && typeof entry[2] === 'string') {
+          return JSON.parse(entry[2]);
+        }
+      }
+    }
+    return null;
+  }
+
+  // [秒, ナノ秒] を "YYYY-MM-DD HH:MM:SS"（ローカル時刻）にする
+  function timestampToText(ts) {
+    if (!Array.isArray(ts) || typeof ts[0] !== 'number') return null;
+    const d = new Date(ts[0] * 1000);
+    const p = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+           ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+
+  async function fetchSourceDetails() {
+    const notebookId = (location.pathname.match(/\/notebook\/([^/?#]+)/) || [])[1];
+    if (!notebookId) throw new Error('NOT_NOTEBOOK_PAGE');
+
+    const at = readWizToken('SNlM0e');
+    const bl = readWizToken('cfb2h');
+    const sid = readWizToken('FdrFJe');
+    if (!at || !bl) throw new Error('TOKEN_NOT_FOUND');
+
+    const inner = JSON.stringify([
+      notebookId, null,
+      [2, null, [1], [1, null, null, null, null, null, null, null, null, null, [1, 3]]],
+      null, 1, [[null, null, []]]
+    ]);
+    const body = 'f.req=' +
+      encodeURIComponent(JSON.stringify([[[SOURCE_DETAIL_RPC, inner, null, 'generic']]])) +
+      '&at=' + encodeURIComponent(at) + '&';
+
+    const url = location.origin + '/_/LabsTailwindUi/data/batchexecute' +
+      '?rpcids=' + SOURCE_DETAIL_RPC +
+      '&source-path=' + encodeURIComponent(location.pathname) +
+      '&bl=' + encodeURIComponent(bl) +
+      (sid ? '&f.sid=' + encodeURIComponent(sid) : '') +
+      '&_reqid=' + Math.floor(Math.random() * 1000000) + '&rt=c';
+
+    let res;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          'X-Same-Domain': '1'
+        },
+        body: body
+      });
+    } catch (e) {
+      throw new Error('NETWORK_ERROR');
+    }
+    if (!res.ok) throw new Error('HTTP_' + res.status);
+
+    const payload = parseBatchExecute(await res.text(), SOURCE_DETAIL_RPC);
+    const rows = payload && payload[0] && payload[0][1];
+    if (!Array.isArray(rows)) throw new Error('UNEXPECTED_SHAPE');
+
+    const details = {};
+    let count = 0;
+    for (const row of rows) {
+      if (!Array.isArray(row) || !Array.isArray(row[0])) continue;
+      const id = row[0][0];
+      if (!id) continue;
+      const m = Array.isArray(row[2]) ? row[2] : [];
+      const yt = Array.isArray(m[5]) ? m[5] : null;
+      const isYoutube = m[4] === 9;
+      const num = v => (typeof v === 'number' ? v : null);
+
+      details[id] = {
+        sourceId: id,
+        title: typeof row[1] === 'string' ? row[1] : '',
+        typeCode: (m[4] === undefined ? null : m[4]),
+        url: (Array.isArray(m[7]) && m[7][0]) || (yt && yt[0]) || null,
+        youtubeVideoId: yt ? (yt[1] || null) : null,
+        youtubeChannel: yt ? (yt[2] || null) : null,
+        driveFileId: (Array.isArray(m[0]) && m[0][0]) || null,
+        wordCount: num(m[1]),
+        // meta[8] は YouTube だけ再生時間（秒）、それ以外はバイト数
+        bytes: isYoutube ? null : num(m[8]),
+        durationSec: isYoutube ? num(m[8]) : null,
+        addedAt: timestampToText(m[2]),
+        ingestedAt: timestampToText(m[14]),
+        mimeType: typeof m[19] === 'string' ? m[19] : null,
+        internalFlag: num(m[6])
+      };
+      count++;
+    }
+    debugLog('fetchSourceDetails:', count, 'sources');
+    return { notebookTitle: (payload[0] && payload[0][0]) || '', details: details, count: count };
+  }
+
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     debugLog("Content script received:", message);
     if (message.action === "ping") {
@@ -879,6 +1029,12 @@ async function deleteSelectedSources(selectedIds) {
       ensureSourcesVisible()
         .catch(e => debugLog('getSources ensure failed', e))
         .then(() => sendResponse({ sources: getSources() }));
+      return true;
+    }
+    else if (message.action === "getSourceDetails") {
+      fetchSourceDetails()
+        .then(result => sendResponse(result))
+        .catch(error => sendResponse({ error: (error && error.message) || 'UNKNOWN' }));
       return true;
     }
     else if (message.action === "deleteSelected") {

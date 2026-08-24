@@ -272,5 +272,41 @@
   },
   "deletionAborted": {
     "message": "Deletion stopped"
+  },
+  "csvIncludeDetails": {
+    "message": "Include source details"
+  },
+  "csvIncludeDetailsTip": {
+    "message": "Adds the URL, YouTube video ID, Google Drive file ID, word count and more that NotebookLM holds for each source"
+  },
+  "csvDetailErrorTitle": {
+    "message": "Could not retrieve source details"
+  },
+  "csvDetailErrorBody": {
+    "message": "NotebookLM may have changed on Google's side. Clear the checkbox to save the usual title-and-type CSV instead."
+  },
+  "srcTypeGoogleDoc": {
+    "message": "Google Docs"
+  },
+  "srcTypeGoogleSlides": {
+    "message": "Google Slides"
+  },
+  "srcTypePdf": {
+    "message": "PDF"
+  },
+  "srcTypePdfUploaded": {
+    "message": "PDF (uploaded)"
+  },
+  "srcTypeText": {
+    "message": "Text"
+  },
+  "srcTypeWebPage": {
+    "message": "Web page"
+  },
+  "srcTypeMarkdown": {
+    "message": "Markdown"
+  },
+  "srcTypeYoutube": {
+    "message": "YouTube"
   }
 }
